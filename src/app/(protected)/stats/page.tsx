@@ -46,7 +46,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           player_id,
-          player:players!match_events_player_id_fkey(
+          player:players!player_id(
             id,
             family_name,
             given_name,
@@ -64,7 +64,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           assisted_by_player_id,
-          player:players!match_events_assisted_by_player_id_fkey(
+          player:players!assisted_by_player_id(
             id,
             family_name,
             given_name,
@@ -82,7 +82,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           player_id,
-          player:players!match_events_player_id_fkey(
+          player:players!player_id(
             id,
             family_name,
             given_name,
@@ -100,7 +100,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           player_id,
-          player:players!match_events_player_id_fkey(
+          player:players!player_id(
             id,
             family_name,
             given_name,
