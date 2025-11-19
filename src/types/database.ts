@@ -20,6 +20,7 @@ export const MatchStatus = {
   IN_PROGRESS: 'in_progress',
   FINISHED: 'finished',
   CANCELLED: 'cancelled',
+  POSTPONED: 'postponed',
 } as const;
 
 export type MatchStatus = (typeof MatchStatus)[keyof typeof MatchStatus];

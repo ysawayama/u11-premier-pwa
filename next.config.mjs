@@ -68,6 +68,11 @@ const nextConfig = {
       },
     ],
   },
+
+  // 認証が必要なルートは静的生成をスキップ
+  experimental: {
+    skipMiddlewareUrlNormalize: true,
+  },
 };
 
 export default withPWA(nextConfig);

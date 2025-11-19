@@ -30,7 +30,14 @@ export default function StandingsPage() {
   };
 
   // ランクに応じたバッジを表示
-  const getRankBadge = (rank: number) => {
+  const getRankBadge = (rank: number | null) => {
+    if (!rank) {
+      return (
+        <span className="inline-flex items-center justify-center w-8 h-8 text-gray-400 font-semibold">
+          -
+        </span>
+      );
+    }
     if (rank === 1) {
       return (
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white font-bold shadow-md">
@@ -130,12 +137,9 @@ export default function StandingsPage() {
                     <div className="flex justify-center mb-3">
                       {getRankBadge(standing.rank)}
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">
                       {standing.team.name}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      {standing.team.prefecture?.name || ''}
-                    </p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
                         <p className="text-xs text-gray-600">勝点</p>
@@ -213,7 +217,7 @@ export default function StandingsPage() {
                       <tr
                         key={standing.id}
                         className={`hover:bg-gray-50 transition-colors ${
-                          standing.rank <= 3 ? 'bg-blue-50/30' : ''
+                          standing.rank && standing.rank <= 3 ? 'bg-blue-50/30' : ''
                         }`}
                       >
                         <td className="py-3 px-4 text-center">
@@ -226,9 +230,6 @@ export default function StandingsPage() {
                           >
                             {standing.team.name}
                           </Link>
-                          <p className="text-xs text-gray-500">
-                            {standing.team.prefecture?.name || ''}
-                          </p>
                         </td>
                         <td className="py-3 px-4 text-center text-sm">
                           {standing.matches_played}
@@ -275,9 +276,6 @@ export default function StandingsPage() {
                       <div className="flex-1">
                         <p className="font-semibold text-gray-900">
                           {standing.team.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {standing.team.prefecture?.name || ''}
                         </p>
                       </div>
                       <div className="text-right">

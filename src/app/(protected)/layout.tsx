@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 /**
  * 保護されたルート用レイアウト
  * 認証チェックとセッション管理を行う

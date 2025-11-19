@@ -215,11 +215,11 @@ export default function MatchDetailPage() {
                   </dd>
                 </div>
               )}
-              {match.referee_name && (
+              {match.referee && (
                 <div>
                   <dt className="text-sm font-medium text-gray-600">主審</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {match.referee_name}
+                    {match.referee}
                   </dd>
                 </div>
               )}

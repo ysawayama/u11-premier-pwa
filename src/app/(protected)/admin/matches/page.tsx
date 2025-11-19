@@ -7,6 +7,9 @@ import { getRecentMatches } from '@/lib/api/matches';
 import { useAuthStore } from '@/lib/stores/authStore';
 import type { MatchWithTeams, MatchStatus } from '@/types/database';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 /**
  * 試合管理ページ（コーチ・管理者専用）
  */

@@ -143,7 +143,7 @@ export function useNotifications() {
       // プッシュマネージャーにサブスクライブ
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
       });
 
       // サブスクリプションをサーバーに保存
@@ -209,7 +209,6 @@ export function useNotifications() {
       console.log('Showing notification...');
       await registration.showNotification('テスト通知', {
         body: 'プッシュ通知が正常に動作しています',
-        vibrate: [200, 100, 200],
       });
       console.log('Notification shown successfully');
       alert('テスト通知を送信しました！');

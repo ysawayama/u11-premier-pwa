@@ -119,13 +119,13 @@ export async function deleteMatchEvent(eventId: string): Promise<void> {
 export async function getPlayerGoals(playerId: string, seasonId: string): Promise<number> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  const { count, error } = await supabase
     .from('match_events')
-    .select('id', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .eq('player_id', playerId)
     .eq('event_type', 'goal')
     .eq('match_id', seasonId); // season_idでフィルタする場合はJOINが必要
 
   if (error) throw error;
-  return data || 0;
+  return count || 0;
 }
