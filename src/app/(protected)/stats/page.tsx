@@ -46,7 +46,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           player_id,
-          player:players(
+          player:players!match_events_player_id_fkey(
             id,
             family_name,
             given_name,
@@ -82,7 +82,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           player_id,
-          player:players(
+          player:players!match_events_player_id_fkey(
             id,
             family_name,
             given_name,
@@ -100,7 +100,7 @@ export default function StatsPage() {
         .from('match_events')
         .select(`
           player_id,
-          player:players(
+          player:players!match_events_player_id_fkey(
             id,
             family_name,
             given_name,
