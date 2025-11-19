@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="512" height="512" fill="#1e40af" rx="64"/>
+
+  <!-- サッカーボール風デザイン -->
+  <circle cx="256" cy="256" r="160" fill="#ffffff"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#1e40af" stroke-width="4"/>
+
+  <!-- U11 テキスト -->
+  <text x="256" y="230" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#1e40af" text-anchor="middle">U11</text>
+
+  <!-- Premier -->
+  <text x="256" y="300" font-family="Arial, sans-serif" font-size="32" font-weight="normal" fill="#1e40af" text-anchor="middle">PREMIER</text>
+</svg>
