@@ -217,22 +217,11 @@ export function useNotifications() {
         badge: '/icons/icon-192x192.png',
         tag: 'test-notification',
         requireInteraction: false,
-        vibrate: [200, 100, 200],
         data: {
           url: '/settings',
           timestamp: new Date().toISOString(),
         },
-        actions: [
-          {
-            action: 'open',
-            title: '開く',
-          },
-          {
-            action: 'close',
-            title: '閉じる',
-          },
-        ],
-      });
+      } as NotificationOptions);
       console.log('Notification shown successfully');
       return true;
     } catch (error) {
