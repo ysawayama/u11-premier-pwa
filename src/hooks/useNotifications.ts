@@ -124,12 +124,16 @@ export function useNotifications() {
     }
 
     try {
-      // Service Workerを登録
+      // カスタムService Workerを登録
+      console.log('Registering service worker...');
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
       });
+      console.log('Service worker registered:', registration);
 
+      console.log('Waiting for service worker to be ready...');
       await navigator.serviceWorker.ready;
+      console.log('Service worker is ready');
 
       // VAPIDキーを取得（環境変数から）
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -207,11 +211,29 @@ export function useNotifications() {
       console.log('Service worker ready:', registration);
 
       console.log('Showing notification...');
-      await registration.showNotification('テスト通知', {
-        body: 'プッシュ通知が正常に動作しています',
+      await registration.showNotification('🔔 テスト通知', {
+        body: 'プッシュ通知が正常に動作しています！\nこの通知が表示されていれば設定は完了です。',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-192x192.png',
+        tag: 'test-notification',
+        requireInteraction: false,
+        vibrate: [200, 100, 200],
+        data: {
+          url: '/settings',
+          timestamp: new Date().toISOString(),
+        },
+        actions: [
+          {
+            action: 'open',
+            title: '開く',
+          },
+          {
+            action: 'close',
+            title: '閉じる',
+          },
+        ],
       });
       console.log('Notification shown successfully');
-      alert('テスト通知を送信しました！');
       return true;
     } catch (error) {
       console.error('Failed to send test notification:', error);

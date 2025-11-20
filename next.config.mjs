@@ -2,9 +2,10 @@ import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  // 開発環境ではService Workerを無効化（デバッグしやすくするため）
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
+  // 開発環境でもService Workerを有効化（通知機能のテストのため）
+  disable: false,
+  // 自動登録を無効にして、カスタムService Workerを使用
+  register: false,
   skipWaiting: true,
 
   // Workboxの設定

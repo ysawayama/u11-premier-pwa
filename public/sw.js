@@ -66,8 +66,15 @@ self.addEventListener('push', (event) => {
 // 通知クリック時
 self.addEventListener('notificationclick', (event) => {
   console.log('[Service Worker] Notification clicked:', event);
+  console.log('[Service Worker] Action:', event.action);
 
   event.notification.close();
+
+  // アクションボタンがクリックされた場合
+  if (event.action === 'close') {
+    // 何もしない（通知を閉じるだけ）
+    return;
+  }
 
   const urlToOpen = event.notification.data?.url || '/dashboard';
 
@@ -77,8 +84,13 @@ self.addEventListener('notificationclick', (event) => {
       .then((clientList) => {
         // 既に開いているウィンドウがあればフォーカス
         for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
+          if (client.url.includes(self.registration.scope) && 'focus' in client) {
+            return client.focus().then(() => {
+              // URLが異なる場合はナビゲート
+              if (client.url !== urlToOpen) {
+                return client.navigate(urlToOpen);
+              }
+            });
           }
         }
         // なければ新しいウィンドウを開く
