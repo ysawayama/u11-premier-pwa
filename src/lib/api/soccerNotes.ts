@@ -48,7 +48,7 @@ export async function getSoccerNotesByPlayer(playerId: string): Promise<SoccerNo
   if (error) throw error;
 
   // コーチ情報は別途取得が必要だが、今はシンプルに
-  return (data || []).map((note) => ({
+  return (data || []).map((note: SoccerNote) => ({
     ...note,
     coach: note.coach_id
       ? {

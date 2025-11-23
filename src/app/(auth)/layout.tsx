@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: 'ログイン - U-11プレミアリーグ',
 };
 
+// Force dynamic rendering for all auth pages
+export const dynamic = 'force-dynamic';
+
 /**
  * 認証ページ用レイアウト
  * ログイン・サインアップページで共通のスタイルを提供
