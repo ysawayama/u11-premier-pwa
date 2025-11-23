@@ -128,7 +128,7 @@ export default function DashboardPage() {
             </span>
           </Link>
 
-          {/* 試合速報 */}
+          {/* 試合結果 */}
           <Link
             href="/matches"
             className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
@@ -149,10 +149,10 @@ export default function DashboardPage() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              試合速報
+              試合結果
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              リアルタイムで試合結果を確認
+              試合の日程・結果を確認
             </p>
             <span className="text-green-600 hover:text-green-700 text-sm font-medium">
               開く →

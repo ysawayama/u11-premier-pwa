@@ -2,8 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getAllTeams } from '@/lib/api/teams';
 import type { TeamWithPrefecture } from '@/types/database';
+
+/**
+ * チームエンブレム表示コンポーネント
+ */
+function TeamLogo({ logoUrl, teamName, size = 32 }: { logoUrl: string | null; teamName: string; size?: number }) {
+  if (!logoUrl) {
+    return (
+      <div
+        className="bg-gray-200 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold flex-shrink-0"
+        style={{ width: size, height: size }}
+      >
+        {teamName.charAt(0)}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={logoUrl}
+      alt={`${teamName} エンブレム`}
+      width={size}
+      height={size}
+      className="object-contain flex-shrink-0"
+    />
+  );
+}
 
 /**
  * チーム一覧ページ
@@ -144,10 +171,13 @@ export default function TeamsPage() {
                       href={`/teams/${team.id}`}
                       className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
                     >
-                      {/* チーム名 */}
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {team.name}
-                      </h3>
+                      {/* エンブレムとチーム名 */}
+                      <div className="flex items-center gap-4 mb-3">
+                        <TeamLogo logoUrl={team.logo_url} teamName={team.name} size={48} />
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {team.name}
+                        </h3>
+                      </div>
 
                       {/* 基本情報 */}
                       <div className="space-y-1 text-sm text-gray-600">

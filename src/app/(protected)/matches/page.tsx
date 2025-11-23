@@ -3,43 +3,74 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getRecentMatches } from '@/lib/api/matches';
-import type { MatchWithTeams, MatchStatus } from '@/types/database';
+import { getAllTeams } from '@/lib/api/teams';
+import type { MatchWithTeams, MatchStatus, TeamWithPrefecture } from '@/types/database';
 
 /**
- * 試合一覧ページ
+ * 試合結果ページ
  */
 export default function MatchesPage() {
   const [matches, setMatches] = useState<MatchWithTeams[]>([]);
+  const [teams, setTeams] = useState<TeamWithPrefecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<MatchStatus | 'all'>('all');
   const [selectedType, setSelectedType] = useState<string | 'all'>('all');
+  const [selectedTeam, setSelectedTeam] = useState<string | 'all'>('all');
+  const [dateSortOrder, setDateSortOrder] = useState<'oldest' | 'newest'>('newest');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
-    loadMatches();
+    loadData();
   }, []);
 
-  const loadMatches = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await getRecentMatches(100);
-      setMatches(data);
+      const [matchesData, teamsData] = await Promise.all([
+        getRecentMatches(100),
+        getAllTeams(),
+      ]);
+      setMatches(matchesData);
+      setTeams(teamsData);
     } catch (err: any) {
-      setError(err.message || '試合情報の取得に失敗しました');
+      setError(err.message || 'データの取得に失敗しました');
     } finally {
       setLoading(false);
     }
+  };
+
+  // フィルターリセット
+  const handleResetFilters = () => {
+    setSelectedStatus('all');
+    setSelectedType('all');
+    setSelectedTeam('all');
+    setDateSortOrder('newest');
+    setSearchQuery('');
   };
 
   // フィルター処理
   const filteredMatches = matches.filter((match) => {
     const matchesStatus = selectedStatus === 'all' || match.status === selectedStatus;
     const matchesType = selectedType === 'all' || match.match_type === selectedType;
-    return matchesStatus && matchesType;
+    const matchesTeam = selectedTeam === 'all' ||
+      match.home_team.id === selectedTeam ||
+      match.away_team.id === selectedTeam;
+    const matchesSearch = searchQuery === '' ||
+      match.home_team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      match.away_team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      match.venue?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesType && matchesTeam && matchesSearch;
   });
 
-  // 日付でグループ化
-  const matchesByDate = filteredMatches.reduce((acc, match) => {
+  // 日付でソートとグループ化
+  const sortedMatches = [...filteredMatches].sort((a, b) => {
+    const dateA = new Date(a.match_date).getTime();
+    const dateB = new Date(b.match_date).getTime();
+    return dateSortOrder === 'oldest' ? dateA - dateB : dateB - dateA;
+  });
+
+  const matchesByDate = sortedMatches.reduce((acc, match) => {
     const date = new Date(match.match_date).toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: 'long',
@@ -101,7 +132,7 @@ export default function MatchesPage() {
         <div className="text-center">
           <p className="text-red-600">{error}</p>
           <button
-            onClick={loadMatches}
+            onClick={loadData}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             再読み込み
@@ -117,7 +148,7 @@ export default function MatchesPage() {
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-900">試合一覧</h1>
+            <h1 className="text-2xl font-bold text-blue-900">試合結果</h1>
             <Link
               href="/dashboard"
               className="text-sm text-blue-600 hover:text-blue-700"
@@ -127,7 +158,34 @@ export default function MatchesPage() {
           </div>
 
           {/* フィルター */}
-          <div className="mt-4 flex flex-wrap gap-4">
+          <div className="mt-4 space-y-4">
+            {/* 検索ボックス */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="search" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <span>🔍</span>
+                <span>検索:</span>
+              </label>
+              <input
+                id="search"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="チーム名や会場名で検索..."
+                className="flex-1 max-w-md px-4 py-2 rounded-lg text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                  title="検索をクリア"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* フィルターボタン群 */}
+            <div className="flex flex-wrap gap-4">
             {/* ステータスフィルター */}
             <div className="flex gap-2">
               <button
@@ -214,6 +272,65 @@ export default function MatchesPage() {
               >
                 親善試合
               </button>
+            </div>
+
+            {/* チームフィルター */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="team-filter" className="text-sm font-medium text-gray-700">
+                チーム:
+              </label>
+              <select
+                id="team-filter"
+                value={selectedTeam}
+                onChange={(e) => setSelectedTeam(e.target.value)}
+                className="px-3 py-1 rounded-lg text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20"
+              >
+                <option value="all">全チーム</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 日付ソート */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">
+                並び順:
+              </label>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setDateSortOrder('newest')}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                    dateSortOrder === 'newest'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  新しい順
+                </button>
+                <button
+                  onClick={() => setDateSortOrder('oldest')}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                    dateSortOrder === 'oldest'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  古い順
+                </button>
+              </div>
+            </div>
+
+            {/* リセットボタン */}
+            <button
+              onClick={handleResetFilters}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-2"
+            >
+              <span>🔄</span>
+              <span>フィルターをリセット</span>
+            </button>
             </div>
           </div>
 

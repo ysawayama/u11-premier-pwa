@@ -2,8 +2,36 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getCurrentStandings } from '@/lib/api/standings';
 import type { TeamStandingWithTeam } from '@/types/database';
+
+/**
+ * チームエンブレム表示コンポーネント
+ */
+function TeamLogo({ logoUrl, teamName, size = 32 }: { logoUrl: string | null; teamName: string; size?: number }) {
+  if (!logoUrl) {
+    // エンブレムがない場合はプレースホルダー
+    return (
+      <div
+        className="bg-gray-200 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold"
+        style={{ width: size, height: size }}
+      >
+        {teamName.charAt(0)}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={logoUrl}
+      alt={`${teamName} エンブレム`}
+      width={size}
+      height={size}
+      className="object-contain"
+    />
+  );
+}
 
 /**
  * 順位表ページ
@@ -137,6 +165,9 @@ export default function StandingsPage() {
                     <div className="flex justify-center mb-3">
                       {getRankBadge(standing.rank)}
                     </div>
+                    <div className="flex justify-center mb-3">
+                      <TeamLogo logoUrl={standing.team.logo_url} teamName={standing.team.name} size={48} />
+                    </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-4">
                       {standing.team.name}
                     </h3>
@@ -226,8 +257,9 @@ export default function StandingsPage() {
                         <td className="py-3 px-4">
                           <Link
                             href={`/teams/${standing.team.id}`}
-                            className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                            className="flex items-center gap-3 text-blue-600 hover:text-blue-700 font-medium hover:underline"
                           >
+                            <TeamLogo logoUrl={standing.team.logo_url} teamName={standing.team.name} size={28} />
                             {standing.team.name}
                           </Link>
                         </td>
@@ -271,8 +303,9 @@ export default function StandingsPage() {
                     href={`/teams/${standing.team.id}`}
                     className="block p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-4 mb-3">
+                    <div className="flex items-center gap-3 mb-3">
                       {getRankBadge(standing.rank)}
+                      <TeamLogo logoUrl={standing.team.logo_url} teamName={standing.team.name} size={32} />
                       <div className="flex-1">
                         <p className="font-semibold text-gray-900">
                           {standing.team.name}
