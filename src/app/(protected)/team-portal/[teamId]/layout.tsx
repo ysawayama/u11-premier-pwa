@@ -223,13 +223,13 @@ export default function TeamPortalLayout({
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* モバイルメニューボタン */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+                className="lg:hidden p-2 rounded-md hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -237,32 +237,33 @@ export default function TeamPortalLayout({
               </button>
 
               {/* チームロゴ・名前（クリックでポータルトップへ） */}
-              <Link href={basePath} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <Link href={basePath} className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
                 {team.logo_url ? (
                   <Image
                     src={team.logo_url}
                     alt={team.name}
-                    width={40}
-                    height={40}
-                    className="object-contain"
+                    width={36}
+                    height={36}
+                    className="object-contain sm:w-10 sm:h-10"
                   />
                 ) : (
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm sm:text-base">
                     {team.name.charAt(0)}
                   </div>
                 )}
-                <div>
-                  <h1 className="text-lg font-bold text-gray-900">{team.name}</h1>
-                  <p className="text-xs text-gray-500">チームポータル</p>
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate max-w-[140px] sm:max-w-none">{team.name}</h1>
+                  <p className="text-[10px] sm:text-xs text-gray-500">チームポータル</p>
                 </div>
               </Link>
             </div>
 
             <Link
               href="/dashboard"
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 min-h-[44px] flex items-center px-2"
             >
-              ダッシュボード
+              <span className="hidden sm:inline">ダッシュボード</span>
+              <span className="sm:hidden">🏠</span>
             </Link>
           </div>
         </div>
@@ -277,7 +278,7 @@ export default function TeamPortalLayout({
                 <li key={item.href}>
                   <Link
                     href={`${basePath}${item.href}`}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] ${
                       isActive(item.href)
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-700 hover:bg-gray-50'
@@ -320,7 +321,7 @@ export default function TeamPortalLayout({
                       <Link
                         href={`${basePath}${item.href}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] ${
                           isActive(item.href)
                             ? 'bg-blue-50 text-blue-700 font-medium'
                             : 'text-gray-700 hover:bg-gray-50'
@@ -338,10 +339,10 @@ export default function TeamPortalLayout({
         )}
 
         {/* メインコンテンツ */}
-        <main className="flex-1 p-4 lg:p-8">
+        <main className="flex-1 p-3 sm:p-4 lg:p-8 min-w-0">
           {/* パンくずリスト */}
           {currentPage && (
-            <nav className="mb-4 flex items-center text-sm text-gray-500">
+            <nav className="mb-3 sm:mb-4 flex items-center text-xs sm:text-sm text-gray-500">
               <Link
                 href={basePath}
                 className="hover:text-blue-600 transition-colors"

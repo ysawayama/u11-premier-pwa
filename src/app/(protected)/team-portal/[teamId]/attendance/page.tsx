@@ -223,7 +223,7 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">出欠管理</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900">出欠管理</h2>
 
       {schedules.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
@@ -267,20 +267,20 @@ export default function AttendancePage() {
                 </div>
 
                 {/* 出欠サマリー */}
-                <div className="flex items-center gap-4 mt-3">
-                  <span className="text-sm">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3">
+                  <span className="text-xs sm:text-sm">
                     <span className="text-green-600 font-medium">{schedule.summary.attending}</span>
                     <span className="text-gray-400 ml-1">参加</span>
                   </span>
-                  <span className="text-sm">
+                  <span className="text-xs sm:text-sm">
                     <span className="text-red-600 font-medium">{schedule.summary.not_attending}</span>
                     <span className="text-gray-400 ml-1">欠席</span>
                   </span>
-                  <span className="text-sm">
+                  <span className="text-xs sm:text-sm">
                     <span className="text-yellow-600 font-medium">{schedule.summary.maybe}</span>
                     <span className="text-gray-400 ml-1">未定</span>
                   </span>
-                  <span className="text-sm">
+                  <span className="text-xs sm:text-sm">
                     <span className="text-gray-500 font-medium">{schedule.summary.pending}</span>
                     <span className="text-gray-400 ml-1">未回答</span>
                   </span>

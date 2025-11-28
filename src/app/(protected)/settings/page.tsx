@@ -137,14 +137,15 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <Link
             href="/dashboard"
-            className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
+            className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 mb-2 inline-flex items-center min-h-[44px]"
           >
-            ← ダッシュボード
+            <span className="hidden sm:inline">← ダッシュボード</span>
+            <span className="sm:hidden">← 戻る</span>
           </Link>
-          <h1 className="text-2xl font-bold text-blue-900">通知設定</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">通知設定</h1>
         </div>
       </header>
 

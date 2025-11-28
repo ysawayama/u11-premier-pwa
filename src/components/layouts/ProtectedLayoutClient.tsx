@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
+import { BottomNav } from '@/components/navigation/BottomNav';
 
 /**
  * 保護されたルート用のクライアントコンポーネント
@@ -14,7 +15,14 @@ export function ProtectedLayoutClient({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, loading, checkSession } = useAuthStore();
+
+  // ボトムナビを表示しないページ（チームポータルの詳細ページなど）
+  const hideBottomNav = pathname.includes('/team-portal/') || pathname.includes('/admin');
+
+  // ダッシュボードはカスタムレイアウトを使用
+  const useCustomLayout = pathname === '/dashboard';
 
   useEffect(() => {
     // セッションをチェック
@@ -33,8 +41,13 @@ export function ProtectedLayoutClient({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+          <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-r-transparent"
+            style={{ borderColor: 'white', borderRightColor: 'transparent' }}
+          />
+          <p className="mt-4 text-white/70">
+            読み込み中...
+          </p>
         </div>
       </div>
     );
@@ -45,5 +58,18 @@ export function ProtectedLayoutClient({
     return null;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <main className={hideBottomNav ? '' : 'pb-nav'}>
+        {useCustomLayout ? (
+          children
+        ) : (
+          <div className="min-h-screen">
+            {children}
+          </div>
+        )}
+      </main>
+      {!hideBottomNav && <BottomNav />}
+    </>
+  );
 }

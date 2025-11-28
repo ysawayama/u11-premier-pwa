@@ -1,284 +1,587 @@
 'use client';
 
-import { useAuthStore } from '@/lib/stores/authStore';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useAuthStore } from '@/lib/stores/authStore';
+import { createClient } from '@/lib/supabase/client';
+import type { MatchWithTeams, Team, TeamStandingWithTeam, Player } from '@/types/database';
 
-/**
- * ダッシュボードページ（仮実装）
- * 認証後のメインページ
- */
+const MY_TEAM_NAME = '大豆戸FC';
+
+function formatMatchDate(dateStr: string): { day: string; month: string; weekday: string; time: string; full: string } {
+  const date = new Date(dateStr);
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  return {
+    day: date.getDate().toString(),
+    month: (date.getMonth() + 1).toString(),
+    weekday: weekdays[date.getDay()],
+    time: date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+    full: `${date.getMonth() + 1}/${date.getDate()}(${weekdays[date.getDay()]})`,
+  };
+}
+
+function isToday(dateStr: string): boolean {
+  const date = new Date(dateStr);
+  const now = new Date();
+  return date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+}
+
+function getRankIcon(rank: number): string {
+  if (rank === 1) return '🥇';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  return rank.toString();
+}
+
+function getRankClass(rank: number): string {
+  if (rank === 1) return 'rank-1';
+  if (rank === 2) return 'rank-2';
+  if (rank === 3) return 'rank-3';
+  return '';
+}
+
 export default function DashboardPage() {
-  const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const [myTeam, setMyTeam] = useState<Team | null>(null);
+  const [myPlayer, setMyPlayer] = useState<Player | null>(null);
+  const [nextMatch, setNextMatch] = useState<MatchWithTeams | null>(null);
+  const [thisWeekMatches, setThisWeekMatches] = useState<MatchWithTeams[]>([]);
+  const [standings, setStandings] = useState<TeamStandingWithTeam[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+
+      try {
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('name', MY_TEAM_NAME)
+          .single();
+
+        if (teamData) {
+          setMyTeam(teamData);
+
+          const now = new Date().toISOString();
+          const { data: nextMatchData } = await supabase
+            .from('matches')
+            .select(`*, home_team:teams!matches_home_team_id_fkey(*), away_team:teams!matches_away_team_id_fkey(*)`)
+            .or(`home_team_id.eq.${teamData.id},away_team_id.eq.${teamData.id}`)
+            .gte('match_date', now)
+            .eq('status', 'scheduled')
+            .order('match_date', { ascending: true })
+            .limit(1)
+            .single();
+
+          if (nextMatchData) setNextMatch(nextMatchData as MatchWithTeams);
+        }
+
+        const startOfWeek = new Date();
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+        const { data: weekMatches } = await supabase
+          .from('matches')
+          .select(`*, home_team:teams!matches_home_team_id_fkey(*), away_team:teams!matches_away_team_id_fkey(*)`)
+          .gte('match_date', startOfWeek.toISOString())
+          .lte('match_date', endOfWeek.toISOString())
+          .order('match_date', { ascending: true })
+          .limit(10);
+
+        if (weekMatches) setThisWeekMatches(weekMatches as MatchWithTeams[]);
+
+        const { data: currentSeason } = await supabase
+          .from('seasons')
+          .select('id')
+          .eq('is_current', true)
+          .single();
+
+        if (currentSeason) {
+          const { data: standingsData } = await supabase
+            .from('team_standings')
+            .select(`*, team:teams(*)`)
+            .eq('season_id', currentSeason.id)
+            .order('rank', { ascending: true });
+
+          if (standingsData) setStandings(standingsData as TeamStandingWithTeam[]);
+        }
+
+        // ログインユーザーに紐づくプレイヤー情報を取得
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: playerData } = await supabase
+            .from('players')
+            .select('*')
+            .eq('user_id', authUser.id)
+            .single();
+
+          if (playerData) setMyPlayer(playerData as Player);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const myTeamStanding = standings.find((s) => s.team_id === myTeam?.id);
+
+  // ポジション表示名
+  const getPositionLabel = (position: string | null) => {
+    if (!position) return '';
+    const positionMap: Record<string, string> = {
+      'GK': 'GK',
+      'DF': 'DF',
+      'MF': 'MF',
+      'FW': 'FW',
+    };
+    return positionMap[position] || position;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-900">
-              U-11プレミアリーグ
-            </h1>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/settings"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ⚙️ 設定
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ログアウト
-              </button>
+    <div className="min-h-screen">
+      {/* Header - 背景と馴染むようにやや透過 */}
+      <header className="bg-black/20 backdrop-blur-sm">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between mb-3">
+            {/* リーグロゴ（白地付き） */}
+            <div className="bg-white rounded-lg px-3 py-1.5 shadow-sm">
+              <Image
+                src="/images/u11-premier-logo-wide.png"
+                alt="U-11 Premier League"
+                width={120}
+                height={40}
+                className="h-8 w-auto object-contain"
+                priority
+              />
             </div>
+            <Link
+              href="/settings"
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </Link>
           </div>
+
+          {/* User Card in Header */}
+          {myTeam && (
+            <div
+              className="flex items-center gap-3 p-3 rounded-xl"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
+              {/* チームロゴ */}
+              {myTeam.logo_url ? (
+                <div className="w-11 h-11 relative flex-shrink-0 rounded-full overflow-hidden bg-white">
+                  <Image
+                    src={myTeam.logo_url}
+                    alt={myTeam.name}
+                    fill
+                    className="object-contain p-0.5"
+                    sizes="44px"
+                  />
+                </div>
+              ) : (
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{ background: 'var(--color-accent)', color: 'white' }}
+                >
+                  {myTeam.short_name?.[0] || myTeam.name[0]}
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-inverse)' }}>
+                    {user?.full_name || 'ゲスト'}さん
+                  </p>
+                  {/* ポジション・背番号 */}
+                  {myPlayer && (myPlayer.position || myPlayer.uniform_number) && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/90">
+                      {myPlayer.position && getPositionLabel(myPlayer.position)}
+                      {myPlayer.position && myPlayer.uniform_number && ' / '}
+                      {myPlayer.uniform_number && `#${myPlayer.uniform_number}`}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {myTeam.name}
+                  <span className="ml-2 opacity-70">神奈川2部A</span>
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ウェルカムセクション */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            ようこそ、{user?.full_name}さん
-          </h2>
-          <p className="text-gray-600">
-            アカウントタイプ:{' '}
-            <span className="font-medium">
-              {user?.user_type === 'player_guardian'
-                ? '保護者'
-                : user?.user_type === 'coach'
-                ? 'コーチ'
-                : '管理者'}
-            </span>
-          </p>
-          <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
-        </div>
-
-        {/* クイックアクションカード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* チーム一覧 */}
-          <Link
-            href="/teams"
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mb-4">
-              <svg
-                className="w-6 h-6 text-purple-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              チーム一覧
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              登録チームを確認・検索
-            </p>
-            <span className="text-purple-600 hover:text-purple-700 text-sm font-medium">
-              開く →
-            </span>
-          </Link>
-
-          {/* デジタル選手証 */}
-          <Link
-            href="/players"
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              選手一覧
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              QRコード付き選手証を表示・管理
-            </p>
-            <span className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-              開く →
-            </span>
-          </Link>
-
-          {/* 試合結果 */}
-          <Link
-            href="/matches"
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4">
-              <svg
-                className="w-6 h-6 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              試合結果
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              試合の日程・結果を確認
-            </p>
-            <span className="text-green-600 hover:text-green-700 text-sm font-medium">
-              開く →
-            </span>
-          </Link>
-
-          {/* ランキング */}
-          <Link
-            href="/standings"
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-lg mb-4">
-              <svg
-                className="w-6 h-6 text-yellow-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              順位表
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              チームの順位とスタッツを表示
-            </p>
-            <span className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">
-              開く →
-            </span>
-          </Link>
-
-          {/* 選手統計 */}
-          <Link
-            href="/stats"
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mb-4">
-              <svg
-                className="w-6 h-6 text-orange-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              選手統計
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              得点・アシストランキング
-            </p>
-            <span className="text-orange-600 hover:text-orange-700 text-sm font-medium">
-              開く →
-            </span>
-          </Link>
-        </div>
-
-        {/* コーチ・管理者用セクション */}
-        {(user?.user_type === 'coach' || user?.user_type === 'admin') && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              管理機能
+      {/* Main Content - 白カードベース */}
+      <main className="px-4 py-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 space-y-5" style={{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' }}>
+        {/* My Next Match */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+              次の試合
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* 試合管理 */}
-              <Link
-                href="/admin/matches"
-                className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border-2 border-orange-200"
-              >
-                <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mb-4">
-                  <svg
-                    className="w-6 h-6 text-orange-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+            {myTeam && (
+              <Link href={`/teams/${myTeam.id}`} className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
+                チームページ →
+              </Link>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="card p-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-4" />
+              <div className="flex justify-between items-center">
+                <div className="h-10 bg-gray-200 rounded w-24" />
+                <div className="h-8 bg-gray-200 rounded w-12" />
+                <div className="h-10 bg-gray-200 rounded w-24" />
+              </div>
+            </div>
+          ) : nextMatch && myTeam ? (
+            <Link href={`/matches/${nextMatch.id}`}>
+              <div className="match-card p-4" style={{ '--team-color': 'var(--color-accent)' } as React.CSSProperties}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                    style={{ background: 'var(--color-accent)', color: 'white' }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
+                    {myTeam.short_name?.[0] || myTeam.name[0]}
+                  </div>
+                  <div>
+                    <p className="font-bold" style={{ color: 'var(--color-navy)' }}>
+                      {myTeam.name}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {nextMatch.home_team_id === myTeam.id ? 'HOME' : 'AWAY'}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  試合管理
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  スコア入力・ステータス変更
+
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-navy)' }}>
+                      {formatMatchDate(nextMatch.match_date).full} {formatMatchDate(nextMatch.match_date).time}
+                    </p>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      vs {nextMatch.home_team_id === myTeam.id ? nextMatch.away_team.name : nextMatch.home_team.name}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  📍 {nextMatch.venue}
                 </p>
-                <span className="text-orange-600 hover:text-orange-700 text-sm font-medium">
-                  管理画面へ →
+              </div>
+            </Link>
+          ) : (
+            <div className="card p-6 text-center">
+              <p style={{ color: 'var(--text-secondary)' }}>現在、予定されている試合はありません</p>
+            </div>
+          )}
+        </section>
+
+        {/* This Week's Games */}
+        <section className="card-section">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                今週の試合
+              </h2>
+              {thisWeekMatches.some((m) => isToday(m.match_date)) && (
+                <span className="highlight-badge">★ 注目試合あり</span>
+              )}
+            </div>
+            <Link href="/games" className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
+              すべて見る →
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="card p-3 animate-pulse">
+                  <div className="h-3 bg-gray-200 rounded w-1/4 mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                </div>
+              ))}
+            </div>
+          ) : thisWeekMatches.length === 0 ? (
+            <div className="card p-4 text-center">
+              <p style={{ color: 'var(--text-secondary)' }}>今週の試合予定はありません</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {thisWeekMatches.slice(0, 5).map((match) => {
+                const isMyMatch = myTeam && (match.home_team_id === myTeam.id || match.away_team_id === myTeam.id);
+                const today = isToday(match.match_date);
+                const isLive = match.status === 'in_progress';
+
+                return (
+                  <Link key={match.id} href={`/matches/${match.id}`}>
+                    <div
+                      className={isLive ? 'live-card p-4' : 'card p-4'}
+                      style={isMyMatch && !isLive ? { borderLeft: '4px solid var(--color-accent)' } : {}}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {isLive && <span className="badge-live">LIVE</span>}
+                          {today && !isLive && <span className="badge-today">TODAY</span>}
+                          <span className={`text-xs ${isLive ? '' : ''}`} style={{ color: isLive ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>
+                            {formatMatchDate(match.match_date).full}
+                          </span>
+                        </div>
+                        <span className="text-xs" style={{ color: isLive ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>
+                          {formatMatchDate(match.match_date).time}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        {/* ホームチーム */}
+                        <div className="flex items-center gap-1.5 flex-1">
+                          {match.home_team.logo_url ? (
+                            <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden bg-white">
+                              <Image
+                                src={match.home_team.logo_url}
+                                alt={match.home_team.name}
+                                fill
+                                className="object-contain"
+                                sizes="20px"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                              <span className="text-[10px] text-gray-500 font-bold">{(match.home_team.short_name || match.home_team.name).charAt(0)}</span>
+                            </div>
+                          )}
+                          <span
+                            className="text-sm font-medium truncate"
+                            style={{ color: isLive ? 'white' : (isMyMatch && match.home_team_id === myTeam?.id ? 'var(--color-accent)' : 'var(--text-primary)') }}
+                          >
+                            {match.home_team.short_name || match.home_team.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 mx-3">
+                          {match.status === 'finished' || isLive ? (
+                            <>
+                              <span className="score-large" style={{ color: isLive ? 'white' : undefined }}>
+                                {match.home_score ?? 0}
+                              </span>
+                              <span style={{ color: isLive ? 'rgba(255,255,255,0.5)' : 'var(--text-muted)' }}>-</span>
+                              <span className="score-large" style={{ color: isLive ? 'white' : undefined }}>
+                                {match.away_score ?? 0}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>vs</span>
+                          )}
+                        </div>
+
+                        {/* アウェイチーム */}
+                        <div className="flex items-center gap-1.5 flex-1 justify-end">
+                          <span
+                            className="text-sm font-medium truncate"
+                            style={{ color: isLive ? 'white' : (isMyMatch && match.away_team_id === myTeam?.id ? 'var(--color-accent)' : 'var(--text-primary)') }}
+                          >
+                            {match.away_team.short_name || match.away_team.name}
+                          </span>
+                          {match.away_team.logo_url ? (
+                            <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden bg-white">
+                              <Image
+                                src={match.away_team.logo_url}
+                                alt={match.away_team.name}
+                                fill
+                                className="object-contain"
+                                sizes="20px"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                              <span className="text-[10px] text-gray-500 font-bold">{(match.away_team.short_name || match.away_team.name).charAt(0)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-xs mt-2 truncate" style={{ color: isLive ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)' }}>
+                        📍 {match.venue}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Standings */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+              順位表
+            </h2>
+            <Link href="/league" className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
+              すべて見る →
+            </Link>
+          </div>
+
+          <div className="card overflow-hidden">
+            {/* Header */}
+            <div
+              className="grid grid-cols-[32px_1fr_40px_48px_48px] gap-1 px-3 py-2 text-xs font-medium"
+              style={{ background: 'var(--bg-section)', color: 'var(--text-muted)' }}
+            >
+              <span className="text-center">#</span>
+              <span>チーム</span>
+              <span className="text-center">試</span>
+              <span className="text-center">得失</span>
+              <span className="text-center">勝点</span>
+            </div>
+
+            {/* Rows */}
+            <div>
+              {standings.slice(0, 5).map((standing) => {
+                const isMyTeam = myTeam && standing.team_id === myTeam.id;
+                const rank = standing.rank || 0;
+
+                return (
+                  <Link key={standing.id} href={`/teams/${standing.team_id}`}>
+                    <div
+                      className={`grid grid-cols-[32px_1fr_40px_48px_48px] gap-1 px-3 py-3 items-center border-b ${getRankClass(rank)} ${isMyTeam ? 'my-team-row' : ''}`}
+                      style={{ borderColor: 'var(--border)' }}
+                    >
+                      <span className="text-center font-bold" style={{ color: rank <= 3 ? (rank === 1 ? 'var(--color-gold)' : rank === 2 ? 'var(--color-silver)' : 'var(--color-bronze)') : 'var(--text-secondary)' }}>
+                        {getRankIcon(rank)}
+                      </span>
+                      <div className={`flex items-center gap-2 ${isMyTeam ? 'team-name' : ''}`}>
+                        {standing.team.logo_url ? (
+                          <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden bg-gray-100">
+                            <Image
+                              src={standing.team.logo_url}
+                              alt={standing.team.name}
+                              fill
+                              className="object-contain"
+                              sizes="24px"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span className="text-xs text-gray-500 font-bold">{(standing.team.short_name || standing.team.name).charAt(0)}</span>
+                          </div>
+                        )}
+                        <span className="text-sm font-medium truncate" style={{ color: isMyTeam ? 'var(--color-accent)' : 'var(--text-primary)' }}>
+                          {standing.team.short_name || standing.team.name}
+                        </span>
+                      </div>
+                      <span className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
+                        {standing.matches_played}
+                      </span>
+                      <span className="text-sm text-center font-medium" style={{ color: standing.goal_difference > 0 ? 'var(--color-win)' : standing.goal_difference < 0 ? 'var(--color-lose)' : 'var(--text-secondary)' }}>
+                        {standing.goal_difference > 0 ? '+' : ''}{standing.goal_difference}
+                      </span>
+                      <span className="points-large text-center">
+                        {standing.points}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* My Team Status */}
+            {myTeamStanding && (
+              <div className="px-4 py-3" style={{ background: 'var(--color-accent-light)' }}>
+                <p className="text-sm font-medium text-center" style={{ color: 'var(--color-accent)' }}>
+                  ★ あなたのチームは現在 {myTeamStanding.rank}位 です！
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Quick Links */}
+        <section>
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+            クイックアクセス
+          </h2>
+          <div className="grid grid-cols-4 gap-3">
+            {myTeam && (
+              <Link
+                href={`/team-portal/${myTeam.id}`}
+                className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+              >
+                <span className="text-2xl">🏟️</span>
+                <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+                  チーム
                 </span>
               </Link>
-            </div>
+            )}
+            {myTeam && (
+              <Link
+                href={`/team-portal/${myTeam.id}/my-page`}
+                className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+              >
+                <span className="text-2xl">👤</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  マイページ
+                </span>
+              </Link>
+            )}
+            <Link
+              href="/stats"
+              className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+            >
+              <span className="text-2xl">📊</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                統計
+              </span>
+            </Link>
+            <Link
+              href="/standings"
+              className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+            >
+              <span className="text-2xl">🏆</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                順位表
+              </span>
+            </Link>
           </div>
-        )}
+        </section>
 
-        {/* インフォメーション */}
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-green-900 mb-2">
-            Step 5 完了！基本機能が利用可能になりました
-          </h3>
-          <div className="text-sm text-green-700 space-y-1">
-            <p>✅ プロジェクトセットアップ完了</p>
-            <p>✅ PWA基盤構築完了</p>
-            <p>✅ 認証システム完了</p>
-            <p>✅ データベースモデリング完了</p>
-            <p>✅ チーム一覧・詳細ページ完了</p>
-            <p>✅ 選手一覧・デジタル選手証完了</p>
-            <p>✅ 試合一覧・詳細ページ完了</p>
-            <p>✅ 順位表ページ完了</p>
-            <p className="pt-2">🎉 全ての基本機能が利用可能です！</p>
-          </div>
+        {/* Admin Section */}
+        {(user?.user_type === 'coach' || user?.user_type === 'admin') && (
+          <section>
+            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+              管理機能
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/admin/matches" className="card p-4 flex items-center gap-3" style={{ borderLeft: '4px solid var(--color-accent)' }}>
+                <span className="text-2xl">📝</span>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>試合結果一覧</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>スコア入力</p>
+                </div>
+              </Link>
+              <Link href="/teams" className="card p-4 flex items-center gap-3">
+                <span className="text-2xl">📋</span>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>チーム一覧</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>リーグ所属チーム</p>
+                </div>
+              </Link>
+            </div>
+          </section>
+        )}
         </div>
       </main>
     </div>

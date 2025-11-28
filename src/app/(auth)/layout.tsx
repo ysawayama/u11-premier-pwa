@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'ログイン - U-11プレミアリーグ',
-};
-
-// Force dynamic rendering for all auth pages
-export const dynamic = 'force-dynamic';
+import Image from 'next/image';
+import Link from 'next/link';
+import AppGradientBackground from '@/components/layout/AppGradientBackground';
 
 /**
  * 認証ページ用レイアウト
- * ログイン・サインアップページで共通のスタイルを提供
+ * 扉ページと同じ世界観のグラデーション背景 + 白カード
  */
 export default function AuthLayout({
   children,
@@ -17,28 +14,67 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* ロゴエリア */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-900">
-            U-11プレミアリーグ
-          </h1>
-          <p className="text-sm text-gray-600 mt-2">
+    <AppGradientBackground fadeToWhite showParticles showLightLines>
+      <div className="min-h-screen flex flex-col">
+        {/* 上部: ロゴエリア */}
+        <div className="pt-12 pb-8 px-6 text-center">
+          {/* ロゴ */}
+          <div className="flex justify-center mb-4">
+            <div className="bg-white/95 rounded-2xl px-5 py-3 shadow-lg">
+              <Image
+                src="/images/u11-premier-logo-wide.png"
+                alt="U-11 Premier League"
+                width={180}
+                height={65}
+                className="w-[160px] h-auto object-contain"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* キャッチコピー */}
+          <p className="text-white/80 text-sm font-medium tracking-wide">
             デジタル選手証と試合速報
           </p>
         </div>
 
-        {/* コンテンツエリア */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {children}
+        {/* 中央: コンテンツカード */}
+        <div className="flex-1 flex flex-col px-4 pb-6">
+          <div
+            className="bg-white rounded-3xl shadow-2xl overflow-hidden flex-1 max-w-md mx-auto w-full"
+            style={{
+              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <div className="p-6 h-full">
+              {children}
+            </div>
+          </div>
+
+          {/* 注釈テキスト */}
+          <p className="text-center text-xs text-gray-500 mt-4 px-4">
+            まだチームコードがない方は、
+            <br />
+            コーチ・チーム代表者から招待を受けてください。
+          </p>
         </div>
 
         {/* フッター */}
-        <p className="text-center text-sm text-gray-600 mt-6">
-          © 2024 U-11プレミアリーグ
-        </p>
+        <div className="py-4 px-6 flex justify-center gap-6">
+          <Link
+            href="/terms"
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            利用規約
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            プライバシーポリシー
+          </Link>
+        </div>
       </div>
-    </div>
+    </AppGradientBackground>
   );
 }

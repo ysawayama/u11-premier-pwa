@@ -210,22 +210,23 @@ export default function RosterPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">選手名簿</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">選手名簿</h2>
         {isManager && (
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[44px]"
           >
-            選手を追加
+            <span className="hidden sm:inline">選手を追加</span>
+            <span className="sm:hidden">+ 追加</span>
           </button>
         )}
       </div>
 
       {/* 選手数サマリー */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <div className="flex items-center gap-6 text-sm">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs sm:text-sm">
           <span className="font-medium text-gray-900">登録選手数: {players.length}名</span>
-          <span className="text-gray-500">
+          <span className="text-gray-500 text-xs">
             学年別: {GRADE_OPTIONS.map(g => {
               const count = players.filter(p => p.grade === g.value).length;
               return count > 0 ? `${g.label}(${count})` : null;

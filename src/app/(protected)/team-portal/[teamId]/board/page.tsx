@@ -249,12 +249,13 @@ export default function BoardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">掲示板</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">掲示板</h2>
         <button
           onClick={() => { resetPostForm(); setShowPostForm(true); }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+          className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[44px]"
         >
-          投稿する
+          <span className="hidden sm:inline">投稿する</span>
+          <span className="sm:hidden">+ 投稿</span>
         </button>
       </div>
 

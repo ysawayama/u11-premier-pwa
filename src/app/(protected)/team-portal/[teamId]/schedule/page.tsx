@@ -591,14 +591,14 @@ export default function SchedulePage() {
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">スケジュール</h2>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">スケジュール</h2>
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* 表示切替 */}
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors min-h-[36px] ${
                 viewMode === 'list'
                   ? 'bg-white shadow text-gray-900'
                   : 'text-gray-600 hover:text-gray-900'
@@ -608,7 +608,7 @@ export default function SchedulePage() {
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors min-h-[36px] ${
                 viewMode === 'calendar'
                   ? 'bg-white shadow text-gray-900'
                   : 'text-gray-600 hover:text-gray-900'
@@ -620,9 +620,10 @@ export default function SchedulePage() {
           {canEdit && (
             <button
               onClick={() => { resetForm(); setShowForm(true); }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[36px]"
             >
-              予定を追加
+              <span className="hidden sm:inline">予定を追加</span>
+              <span className="sm:hidden">+ 追加</span>
             </button>
           )}
         </div>

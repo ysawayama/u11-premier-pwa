@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getRecentMatches } from '@/lib/api/matches';
 import { getAllTeams } from '@/lib/api/teams';
 import type { MatchWithTeams, MatchStatus, TeamWithPrefecture } from '@/types/database';
+import PageWrapper from '@/components/layout/PageWrapper';
 
 /**
  * 試合結果ページ
@@ -115,47 +117,63 @@ export default function MatchesPage() {
     }
   };
 
+  // ヘッダーコンポーネント
+  const headerContent = (
+    <div className="flex justify-between items-center">
+      <h1 className="text-xl font-bold text-white">試合結果</h1>
+      <Link
+        href="/dashboard"
+        className="text-sm text-white/80 hover:text-white transition-colors"
+      >
+        ← ダッシュボード
+      </Link>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+      <PageWrapper header={headerContent}>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+            <p className="mt-4 text-gray-600">読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">{error}</p>
-          <button
-            onClick={loadData}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            再読み込み
-          </button>
+      <PageWrapper header={headerContent}>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={loadData}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              再読み込み
+            </button>
+          </div>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-900">試合結果</h1>
-            <Link
-              href="/dashboard"
-              className="text-sm text-blue-600 hover:text-blue-700"
-            >
-              ← ダッシュボード
-            </Link>
-          </div>
+    <PageWrapper header={headerContent}>
+      {/* フィルターセクション */}
+      <div className="mb-4 pb-4 border-b border-gray-100">
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-sm text-gray-600">全{matches.length}試合 / 表示: {filteredMatches.length}試合</span>
+          <button
+            onClick={handleResetFilters}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            リセット
+          </button>
+        </div>
 
           {/* フィルター */}
           <div className="mt-4 space-y-4">
@@ -185,12 +203,12 @@ export default function MatchesPage() {
             </div>
 
             {/* フィルターボタン群 */}
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-2 sm:gap-4">
             {/* ステータスフィルター */}
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setSelectedStatus('all')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedStatus === 'all'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -200,7 +218,7 @@ export default function MatchesPage() {
               </button>
               <button
                 onClick={() => setSelectedStatus('scheduled')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedStatus === 'scheduled'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -210,7 +228,7 @@ export default function MatchesPage() {
               </button>
               <button
                 onClick={() => setSelectedStatus('in_progress')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedStatus === 'in_progress'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -220,7 +238,7 @@ export default function MatchesPage() {
               </button>
               <button
                 onClick={() => setSelectedStatus('finished')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedStatus === 'finished'
                     ? 'bg-gray-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -231,10 +249,10 @@ export default function MatchesPage() {
             </div>
 
             {/* タイプフィルター */}
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setSelectedType('all')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedType === 'all'
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -244,46 +262,47 @@ export default function MatchesPage() {
               </button>
               <button
                 onClick={() => setSelectedType('league')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedType === 'league'
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                リーグ戦
+                リーグ
               </button>
               <button
                 onClick={() => setSelectedType('championship')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedType === 'championship'
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                チャンピオンシップ
+                <span className="hidden sm:inline">チャンピオンシップ</span>
+                <span className="sm:hidden">CS</span>
               </button>
               <button
                 onClick={() => setSelectedType('friendly')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedType === 'friendly'
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                親善試合
+                親善
               </button>
             </div>
 
             {/* チームフィルター */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="team-filter" className="text-sm font-medium text-gray-700">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <label htmlFor="team-filter" className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
                 チーム:
               </label>
               <select
                 id="team-filter"
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className="px-3 py-1 rounded-lg text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20"
+                className="flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 min-h-[36px]"
               >
                 <option value="all">全チーム</option>
                 {teams.map((team) => (
@@ -296,13 +315,13 @@ export default function MatchesPage() {
 
             {/* 日付ソート */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 hidden sm:block">
                 並び順:
               </label>
               <div className="flex gap-1">
                 <button
                   onClick={() => setDateSortOrder('newest')}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[36px] ${
                     dateSortOrder === 'newest'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -312,7 +331,7 @@ export default function MatchesPage() {
                 </button>
                 <button
                   onClick={() => setDateSortOrder('oldest')}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[36px] ${
                     dateSortOrder === 'oldest'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -326,26 +345,21 @@ export default function MatchesPage() {
             {/* リセットボタン */}
             <button
               onClick={handleResetFilters}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1 sm:gap-2 min-h-[36px]"
             >
               <span>🔄</span>
-              <span>フィルターをリセット</span>
+              <span className="hidden sm:inline">フィルターをリセット</span>
+              <span className="sm:hidden">リセット</span>
             </button>
             </div>
           </div>
 
-          {/* 統計情報 */}
-          <div className="mt-4 flex gap-4 text-sm text-gray-600">
-            <span>全{matches.length}試合</span>
-            <span>•</span>
-            <span>表示中: {filteredMatches.length}試合</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filteredMatches.length === 0 ? (
+      {/* 試合リスト */}
+      {filteredMatches.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600">
               {selectedStatus !== 'all' || selectedType !== 'all'
@@ -398,10 +412,25 @@ export default function MatchesPage() {
                         <div className="p-4">
                           <div className="flex items-center justify-between mb-3">
                             {/* ホームチーム */}
-                            <div className="flex-1 text-right pr-4">
+                            <div className="flex-1 flex items-center justify-end gap-2 pr-3">
                               <p className="text-sm font-semibold text-gray-900 truncate">
-                                {match.home_team.name}
+                                {match.home_team.short_name || match.home_team.name}
                               </p>
+                              {match.home_team.logo_url ? (
+                                <div className="w-7 h-7 relative flex-shrink-0 rounded-full overflow-hidden bg-gray-100">
+                                  <Image
+                                    src={match.home_team.logo_url}
+                                    alt={match.home_team.name}
+                                    fill
+                                    className="object-contain"
+                                    sizes="28px"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-7 h-7 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 font-bold">{(match.home_team.short_name || match.home_team.name).charAt(0)}</span>
+                                </div>
+                              )}
                             </div>
 
                             {/* スコア */}
@@ -416,9 +445,24 @@ export default function MatchesPage() {
                             </div>
 
                             {/* アウェイチーム */}
-                            <div className="flex-1 text-left pl-4">
+                            <div className="flex-1 flex items-center gap-2 pl-3">
+                              {match.away_team.logo_url ? (
+                                <div className="w-7 h-7 relative flex-shrink-0 rounded-full overflow-hidden bg-gray-100">
+                                  <Image
+                                    src={match.away_team.logo_url}
+                                    alt={match.away_team.name}
+                                    fill
+                                    className="object-contain"
+                                    sizes="28px"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-7 h-7 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-xs text-gray-500 font-bold">{(match.away_team.short_name || match.away_team.name).charAt(0)}</span>
+                                </div>
+                              )}
                               <p className="text-sm font-semibold text-gray-900 truncate">
-                                {match.away_team.name}
+                                {match.away_team.short_name || match.away_team.name}
                               </p>
                             </div>
                           </div>
@@ -449,7 +493,6 @@ export default function MatchesPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+    </PageWrapper>
   );
 }
