@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import type { TeamStandingWithTeam, Team } from '@/types/database';
 
@@ -161,7 +162,7 @@ export default function LeaguePage() {
               <div className="card overflow-hidden">
                 {/* Table Header */}
                 <div
-                  className="grid grid-cols-[32px_1fr_36px_36px_36px_36px_44px] gap-1 px-3 py-2 text-[10px] font-semibold"
+                  className="grid grid-cols-[28px_minmax(120px,1fr)_32px_32px_32px_32px_40px] gap-1 px-2 py-2 text-[10px] font-semibold"
                   style={{
                     background: 'var(--bg-header)',
                     color: 'rgba(255,255,255,0.6)',
@@ -188,7 +189,7 @@ export default function LeaguePage() {
                       <Link
                         key={standing.id}
                         href={`/teams/${standing.team_id}`}
-                        className={`grid grid-cols-[32px_1fr_36px_36px_36px_36px_44px] gap-1 px-3 py-3 items-center transition-colors ${rankClass} ${isMyTeam ? 'my-team-row' : ''}`}
+                        className={`grid grid-cols-[28px_minmax(120px,1fr)_32px_32px_32px_32px_40px] gap-1 px-2 py-3 items-center transition-colors ${rankClass} ${isMyTeam ? 'my-team-row' : ''}`}
                       >
                         {/* Rank */}
                         <span className="text-sm font-bold text-center">
@@ -199,17 +200,28 @@ export default function LeaguePage() {
 
                         {/* Team Name */}
                         <div className="flex items-center gap-2 min-w-0">
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                            style={{
-                              background: isMyTeam ? 'var(--color-accent)' : 'var(--bg-section)',
-                              color: isMyTeam ? 'white' : 'var(--text-secondary)',
-                            }}
-                          >
-                            {standing.team.short_name?.[0] || standing.team.name[0]}
-                          </div>
+                          {standing.team.logo_url ? (
+                            <div className="w-7 h-7 flex-shrink-0 relative">
+                              <Image
+                                src={standing.team.logo_url}
+                                alt={standing.team.name}
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                              style={{
+                                background: isMyTeam ? 'var(--color-accent)' : 'var(--bg-section)',
+                                color: isMyTeam ? 'white' : 'var(--text-secondary)',
+                              }}
+                            >
+                              {standing.team.short_name?.[0] || standing.team.name[0]}
+                            </div>
+                          )}
                           <span
-                            className="text-sm font-medium truncate"
+                            className="text-sm font-medium"
                             style={{
                               color: isMyTeam ? 'var(--color-accent)' : 'var(--text-primary)',
                             }}

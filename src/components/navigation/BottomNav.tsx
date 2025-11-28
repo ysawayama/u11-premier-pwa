@@ -106,10 +106,10 @@ const MediaIcon = ({ active }: { active: boolean }) => (
 );
 
 const navItems: NavItem[] = [
-  { id: 'home', label: 'HOME', href: '/dashboard' },
-  { id: 'games', label: 'GAMES', href: '/games' },
-  { id: 'league', label: 'LEAGUE', href: '/league' },
-  { id: 'media', label: 'MEDIA', href: '/media' },
+  { id: 'home', label: 'ホーム', href: '/dashboard' },
+  { id: 'games', label: '試合', href: '/games' },
+  { id: 'league', label: 'リーグ', href: '/league' },
+  { id: 'media', label: 'メディア', href: '/media' },
 ];
 
 export function BottomNav() {

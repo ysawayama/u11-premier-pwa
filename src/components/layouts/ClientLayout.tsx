@@ -22,9 +22,16 @@ export function ClientLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    // セッションごとにスプラッシュを表示（ブラウザを閉じるとリセット）
+    const splashShown = sessionStorage.getItem('splashShown');
+    if (!splashShown) {
+      setShowSplash(true);
+      sessionStorage.setItem('splashShown', 'true');
+    }
   }, []);
 
   // スプラッシュ終了時の遷移ロジック
@@ -53,7 +60,7 @@ export function ClientLayout() {
 
   return (
     <>
-      <SplashIntro onFinished={handleSplashFinished} />
+      {showSplash && <SplashIntro onFinished={handleSplashFinished} />}
       <InstallPrompt />
     </>
   );
