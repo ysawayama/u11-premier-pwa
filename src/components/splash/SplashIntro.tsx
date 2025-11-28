@@ -107,7 +107,7 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
             return (
               <div
                 key={team.id}
-                className={`absolute w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center overflow-hidden transition-all duration-500`}
+                className={`absolute w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden transition-all duration-500`}
                 style={{
                   left: `calc(50% + ${x}px - 24px)`,
                   top: `calc(50% + ${y}px - 24px)`,

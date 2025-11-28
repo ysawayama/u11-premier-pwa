@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getMatchById } from '@/lib/api/matches';
 import type { MatchWithTeams, MatchStatus } from '@/types/database';
 
@@ -145,24 +146,42 @@ export default function MatchDetailPage() {
             </div>
 
             {/* スコアボード */}
-            <div className="flex items-center justify-center gap-8">
+            <div className="flex items-center justify-center gap-4">
               {/* ホームチーム */}
               <div className="flex-1 text-center">
                 <Link
                   href={`/teams/${match.home_team.id}`}
                   className="hover:opacity-80 transition-opacity"
                 >
-                  <p className="text-lg font-semibold mb-2">
-                    {match.home_team.name}
-                  </p>
-                  <div className="text-5xl font-bold">
+                  <div className="flex flex-col items-center">
+                    {match.home_team.logo_url ? (
+                      <div className="w-16 h-16 relative mb-2">
+                        <Image
+                          src={match.home_team.logo_url}
+                          alt={match.home_team.name}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                        <span className="text-2xl font-bold">
+                          {match.home_team.short_name?.[0] || match.home_team.name[0]}
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-sm font-semibold">
+                      {match.home_team.short_name || match.home_team.name}
+                    </p>
+                  </div>
+                  <div className="text-4xl font-bold mt-2">
                     {match.home_score ?? '-'}
                   </div>
                 </Link>
               </div>
 
               {/* VS */}
-              <div className="text-2xl font-bold opacity-75">VS</div>
+              <div className="text-xl font-bold opacity-75">VS</div>
 
               {/* アウェイチーム */}
               <div className="flex-1 text-center">
@@ -170,10 +189,28 @@ export default function MatchDetailPage() {
                   href={`/teams/${match.away_team.id}`}
                   className="hover:opacity-80 transition-opacity"
                 >
-                  <p className="text-lg font-semibold mb-2">
-                    {match.away_team.name}
-                  </p>
-                  <div className="text-5xl font-bold">
+                  <div className="flex flex-col items-center">
+                    {match.away_team.logo_url ? (
+                      <div className="w-16 h-16 relative mb-2">
+                        <Image
+                          src={match.away_team.logo_url}
+                          alt={match.away_team.name}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                        <span className="text-2xl font-bold">
+                          {match.away_team.short_name?.[0] || match.away_team.name[0]}
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-sm font-semibold">
+                      {match.away_team.short_name || match.away_team.name}
+                    </p>
+                  </div>
+                  <div className="text-4xl font-bold mt-2">
                     {match.away_score ?? '-'}
                   </div>
                 </Link>

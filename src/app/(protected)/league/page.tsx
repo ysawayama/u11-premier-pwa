@@ -162,7 +162,7 @@ export default function LeaguePage() {
               <div className="card overflow-hidden">
                 {/* Table Header */}
                 <div
-                  className="grid grid-cols-[28px_minmax(120px,1fr)_32px_32px_32px_32px_40px] gap-1 px-2 py-2 text-[10px] font-semibold"
+                  className="grid grid-cols-[24px_1fr_28px_28px_28px_28px_36px] gap-0.5 px-2 py-2 text-[10px] font-semibold"
                   style={{
                     background: 'var(--bg-header)',
                     color: 'rgba(255,255,255,0.6)',
@@ -174,7 +174,7 @@ export default function LeaguePage() {
                   <span className="text-center">勝</span>
                   <span className="text-center">分</span>
                   <span className="text-center">負</span>
-                  <span className="text-center">勝点</span>
+                  <span className="text-center">点</span>
                 </div>
 
                 {/* Table Body */}
@@ -189,7 +189,7 @@ export default function LeaguePage() {
                       <Link
                         key={standing.id}
                         href={`/teams/${standing.team_id}`}
-                        className={`grid grid-cols-[28px_minmax(120px,1fr)_32px_32px_32px_32px_40px] gap-1 px-2 py-3 items-center transition-colors ${rankClass} ${isMyTeam ? 'my-team-row' : ''}`}
+                        className={`grid grid-cols-[24px_1fr_28px_28px_28px_28px_36px] gap-0.5 px-2 py-2.5 items-center transition-colors ${rankClass} ${isMyTeam ? 'my-team-row' : ''}`}
                       >
                         {/* Rank */}
                         <span className="text-sm font-bold text-center">
@@ -199,9 +199,9 @@ export default function LeaguePage() {
                         </span>
 
                         {/* Team Name */}
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           {standing.team.logo_url ? (
-                            <div className="w-7 h-7 flex-shrink-0 relative">
+                            <div className="w-6 h-6 flex-shrink-0 relative">
                               <Image
                                 src={standing.team.logo_url}
                                 alt={standing.team.name}
@@ -211,7 +211,7 @@ export default function LeaguePage() {
                             </div>
                           ) : (
                             <div
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
                               style={{
                                 background: isMyTeam ? 'var(--color-accent)' : 'var(--bg-section)',
                                 color: isMyTeam ? 'white' : 'var(--text-secondary)',
@@ -221,7 +221,7 @@ export default function LeaguePage() {
                             </div>
                           )}
                           <span
-                            className="text-sm font-medium"
+                            className="text-xs font-medium truncate"
                             style={{
                               color: isMyTeam ? 'var(--color-accent)' : 'var(--text-primary)',
                             }}
@@ -232,31 +232,31 @@ export default function LeaguePage() {
 
                         {/* Stats */}
                         <span
-                          className="text-sm text-center"
+                          className="text-xs text-center"
                           style={{ color: 'var(--text-secondary)' }}
                         >
                           {standing.matches_played}
                         </span>
                         <span
-                          className="text-sm text-center"
+                          className="text-xs text-center"
                           style={{ color: 'var(--color-win)' }}
                         >
                           {standing.wins}
                         </span>
                         <span
-                          className="text-sm text-center"
+                          className="text-xs text-center"
                           style={{ color: 'var(--color-draw)' }}
                         >
                           {standing.draws}
                         </span>
                         <span
-                          className="text-sm text-center"
+                          className="text-xs text-center"
                           style={{ color: 'var(--color-lose)' }}
                         >
                           {standing.losses}
                         </span>
                         <span
-                          className="points-large text-center"
+                          className="text-sm font-bold text-center"
                           style={{ color: 'var(--color-navy)' }}
                         >
                           {standing.points}
