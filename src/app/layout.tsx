@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { ClientLayout } from "@/components/layouts/ClientLayout";
+import { ClientLayoutWrapper } from "@/components/layouts/ClientLayoutWrapper";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// 動的レンダリングを強制してプリレンダリングを無効化
+export const dynamic = 'force-dynamic';
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -39,10 +37,10 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} antialiased`}
       >
         {children}
-        <ClientLayout />
+        <ClientLayoutWrapper />
       </body>
     </html>
   );

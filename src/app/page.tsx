@@ -1,5 +1,8 @@
 import Link from 'next/link';
 
+// 動的レンダリングを強制（SSR時のuseContextエラーを回避）
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">

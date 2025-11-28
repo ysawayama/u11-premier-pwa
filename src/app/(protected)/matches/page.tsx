@@ -175,8 +175,8 @@ export default function MatchesPage() {
           </button>
         </div>
 
-          {/* フィルター */}
-          <div className="mt-4 space-y-4">
+        {/* フィルター */}
+        <div className="mt-4 space-y-4">
             {/* 検索ボックス */}
             <div className="flex items-center gap-2">
               <label htmlFor="search" className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -351,9 +351,6 @@ export default function MatchesPage() {
               <span className="hidden sm:inline">フィルターをリセット</span>
               <span className="sm:hidden">リセット</span>
             </button>
-            </div>
-          </div>
-
           </div>
         </div>
       </div>

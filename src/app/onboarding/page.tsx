@@ -1,156 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import AppGradientBackground from '@/components/layout/AppGradientBackground';
-import OnboardingSlide from '@/components/onboarding/OnboardingSlide';
-import AppOverviewIllustration from '@/components/onboarding/illustrations/AppOverviewIllustration';
-import PlayerCardIllustration from '@/components/onboarding/illustrations/PlayerCardIllustration';
-import TeamPortalIllustration from '@/components/onboarding/illustrations/TeamPortalIllustration';
+import dynamic from 'next/dynamic';
 
-const slides = [
-  {
-    id: 1,
-    illustration: <AppOverviewIllustration />,
-    title: 'U-11プレミアリーグ公式アプリ',
-    description: '試合速報・ランキング・デジタル選手証。\nあなたのサッカーライフを、ひとつのアプリで。',
-    points: [
-      '試合の結果がすぐ分かる',
-      'チームや選手のランキングがひと目で分かる',
-      'デジタル選手証で大会運営もスムーズ',
-    ],
-  },
-  {
-    id: 2,
-    illustration: <PlayerCardIllustration />,
-    title: '自分だけのマイページ',
-    description: '出場試合・ゴール数・所属チーム。\n自分の成長を、いつでも見返せます。',
-    points: [
-      'デジタル選手証（QRコード付き）',
-      '自分のシーズン成績',
-      'フォロー中のチームの情報',
-    ],
-  },
-  {
-    id: 3,
-    illustration: <TeamPortalIllustration />,
-    title: 'チームの情報がひとつに',
-    description: 'スケジュールも結果も、チーム写真も。\nチームポータルで全部まとまります。',
-    points: [
-      '今週の試合と結果',
-      'スタメン / ラインナップ',
-      'チームの写真・動画ギャラリー',
-    ],
-  },
-];
+// 動的レンダリングを強制
+export const dynamicConfig = 'force-dynamic';
+
+// framer-motionを含むコンポーネント全体をSSR無効でロード
+const OnboardingContent = dynamic(
+  () => import('@/components/onboarding/OnboardingContent'),
+  { ssr: false }
+);
 
 export default function OnboardingPage() {
-  const router = useRouter();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
-
-  const isFirstSlide = currentIndex === 0;
-  const isLastSlide = currentIndex === slides.length - 1;
-
-  const completeOnboarding = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('onboardingCompleted', 'true');
-    }
-    router.replace('/login');
-  }, [router]);
-
-  const handleNext = useCallback(() => {
-    if (isLastSlide) {
-      completeOnboarding();
-    } else {
-      setDirection(1);
-      setCurrentIndex((prev) => prev + 1);
-    }
-  }, [isLastSlide, completeOnboarding]);
-
-  const handleBack = useCallback(() => {
-    if (!isFirstSlide) {
-      setDirection(-1);
-      setCurrentIndex((prev) => prev - 1);
-    }
-  }, [isFirstSlide]);
-
-  const handleSkip = useCallback(() => {
-    completeOnboarding();
-  }, [completeOnboarding]);
-
-  const currentSlide = slides[currentIndex];
-
-  const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? '100%' : '-100%',
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: number) => ({
-      x: direction > 0 ? '-100%' : '100%',
-      opacity: 0,
-    }),
-  };
-
-  return (
-    <AppGradientBackground showParticles showLightLines>
-      <div className="min-h-screen flex flex-col">
-        {/* スライドコンテンツ */}
-        <div className="flex-1 relative overflow-hidden">
-          <AnimatePresence initial={false} custom={direction} mode="wait">
-            <motion.div
-              key={currentIndex}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { type: 'spring', stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 },
-              }}
-              className="absolute inset-0"
-            >
-              <OnboardingSlide
-                illustration={currentSlide.illustration}
-                title={currentSlide.title}
-                description={currentSlide.description}
-                points={currentSlide.points}
-                primaryButtonText={isLastSlide ? 'はじめる' : '次へ'}
-                onPrimaryClick={handleNext}
-                secondaryButtonText={!isFirstSlide ? '戻る' : undefined}
-                onSecondaryClick={!isFirstSlide ? handleBack : undefined}
-                showSkip={isFirstSlide}
-                onSkipClick={handleSkip}
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* ページインジケーター */}
-        <div className="flex justify-center gap-2 pb-8">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setDirection(index > currentIndex ? 1 : -1);
-                setCurrentIndex(index);
-              }}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                index === currentIndex
-                  ? 'bg-[#0D47FF] w-6'
-                  : 'bg-white/40 hover:bg-white/60'
-              }`}
-              aria-label={`スライド ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-    </AppGradientBackground>
-  );
+  return <OnboardingContent />;
 }

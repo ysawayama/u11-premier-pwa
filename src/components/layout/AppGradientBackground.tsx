@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
 
 type AppGradientBackgroundProps = {
   /** 下部を白にフェードさせるかどうか（ログイン画面用） */
@@ -12,9 +12,30 @@ type AppGradientBackgroundProps = {
   children?: React.ReactNode;
 };
 
+// パーティクルの事前計算された位置（SSRで安定させるため固定値）
+const PARTICLE_CONFIGS = [
+  { size: 2.1, left: 15, top: 25, duration: 5.2, delay: 0.3, yOffset: 4.5, isCyan: false },
+  { size: 1.5, left: 45, top: 12, duration: 4.8, delay: 1.2, yOffset: 3.8, isCyan: true },
+  { size: 2.8, left: 72, top: 38, duration: 6.1, delay: 0.8, yOffset: 5.2, isCyan: false },
+  { size: 1.2, left: 8, top: 55, duration: 4.3, delay: 2.1, yOffset: 3.2, isCyan: false },
+  { size: 1.9, left: 88, top: 18, duration: 5.7, delay: 0.5, yOffset: 4.8, isCyan: true },
+  { size: 2.4, left: 33, top: 42, duration: 4.9, delay: 1.8, yOffset: 4.1, isCyan: false },
+  { size: 1.3, left: 62, top: 8, duration: 5.4, delay: 2.5, yOffset: 3.5, isCyan: false },
+  { size: 2.6, left: 25, top: 65, duration: 6.3, delay: 0.2, yOffset: 5.5, isCyan: false },
+  { size: 1.7, left: 78, top: 52, duration: 4.6, delay: 1.5, yOffset: 3.9, isCyan: true },
+  { size: 2.2, left: 52, top: 28, duration: 5.8, delay: 0.9, yOffset: 4.3, isCyan: false },
+  { size: 1.4, left: 95, top: 35, duration: 4.2, delay: 2.8, yOffset: 3.3, isCyan: false },
+  { size: 2.9, left: 18, top: 48, duration: 6.5, delay: 0.4, yOffset: 5.8, isCyan: false },
+  { size: 1.6, left: 42, top: 60, duration: 5.1, delay: 1.1, yOffset: 4.0, isCyan: true },
+  { size: 2.0, left: 68, top: 15, duration: 4.7, delay: 2.3, yOffset: 4.6, isCyan: false },
+  { size: 1.8, left: 5, top: 32, duration: 5.9, delay: 0.7, yOffset: 4.2, isCyan: false },
+];
+
 /**
  * 共通グラデーション背景
  * 扉ページ・オンボーディング・ログインで再利用
+ *
+ * NOTE: SSR対応のため、framer-motionではなくCSSアニメーションを使用
  */
 export default function AppGradientBackground({
   fadeToWhite = false,
@@ -22,6 +43,12 @@ export default function AppGradientBackground({
   showLightLines = true,
   children,
 }: AppGradientBackgroundProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* ベースグラデーション */}
@@ -101,47 +128,29 @@ export default function AppGradientBackground({
         </svg>
       )}
 
-      {/* 粒子パーティクル */}
-      {showParticles && (
+      {/* 粒子パーティクル - CSSアニメーションで実装 */}
+      {showParticles && mounted && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(30)].map((_, i) => {
-            const size = 1 + Math.random() * 2;
-            const left = Math.random() * 100;
-            const top = Math.random() * 70; // 上部70%に集中
-            const duration = 4 + Math.random() * 3;
-            const delay = Math.random() * 3;
-            const yOffset = 3 + Math.random() * 4;
-            const isCyan = Math.random() > 0.75;
-
-            return (
-              <motion.div
-                key={i}
-                className="absolute rounded-full"
-                style={{
-                  width: size,
-                  height: size,
-                  left: `${left}%`,
-                  top: `${top}%`,
-                  background: isCyan
-                    ? 'rgba(79, 217, 255, 0.7)'
-                    : 'rgba(255, 255, 255, 0.45)',
-                  boxShadow: isCyan
-                    ? '0 0 5px rgba(79, 217, 255, 0.5)'
-                    : '0 0 3px rgba(255, 255, 255, 0.3)',
-                }}
-                animate={{
-                  y: [-yOffset, yOffset, -yOffset],
-                  opacity: [0.3, 0.7, 0.3],
-                }}
-                transition={{
-                  duration,
-                  repeat: Infinity,
-                  delay,
-                  ease: 'easeInOut',
-                }}
-              />
-            );
-          })}
+          {PARTICLE_CONFIGS.map((config, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full animate-particle-float"
+              style={{
+                width: config.size,
+                height: config.size,
+                left: `${config.left}%`,
+                top: `${config.top}%`,
+                background: config.isCyan
+                  ? 'rgba(79, 217, 255, 0.7)'
+                  : 'rgba(255, 255, 255, 0.45)',
+                boxShadow: config.isCyan
+                  ? '0 0 5px rgba(79, 217, 255, 0.5)'
+                  : '0 0 3px rgba(255, 255, 255, 0.3)',
+                animationDuration: `${config.duration}s`,
+                animationDelay: `${config.delay}s`,
+              }}
+            />
+          ))}
         </div>
       )}
 

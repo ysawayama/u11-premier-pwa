@@ -1,9 +1,19 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { InstallPrompt } from '@/components/features/pwa/InstallPrompt';
-import SplashIntro from '@/components/splash/SplashIntro';
+import dynamic from 'next/dynamic';
+
+// framer-motionを含むコンポーネントはクライアントサイドのみでロード
+const SplashIntro = dynamic(
+  () => import('@/components/splash/SplashIntro'),
+  { ssr: false }
+);
+
+const InstallPrompt = dynamic(
+  () => import('@/components/features/pwa/InstallPrompt').then(mod => ({ default: mod.InstallPrompt })),
+  { ssr: false }
+);
 
 /**
  * クライアントサイドのみで実行されるレイアウトコンポーネント
@@ -11,6 +21,11 @@ import SplashIntro from '@/components/splash/SplashIntro';
 export function ClientLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // スプラッシュ終了時の遷移ロジック
   const handleSplashFinished = useCallback(() => {
@@ -30,6 +45,11 @@ export function ClientLayout() {
     }
     // 既存ユーザー: 現在のページにとどまる（または必要に応じてホームへ）
   }, [router, pathname]);
+
+  // SSR時は何もレンダリングしない
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>

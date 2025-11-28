@@ -1,7 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 type OnboardingSlideProps = {
   /** アイキャッチ要素（SVGイラストやモック画像） */
   illustration: React.ReactNode;
@@ -27,6 +25,7 @@ type OnboardingSlideProps = {
 
 /**
  * オンボーディング各スライドの共通レイアウト
+ * CSSアニメーションを使用（framer-motion不使用でSSR対応）
  */
 export default function OnboardingSlide({
   illustration,
@@ -44,24 +43,17 @@ export default function OnboardingSlide({
     <div className="flex flex-col h-full">
       {/* 上部: アイキャッチ領域（背景が見える部分） */}
       <div className="flex-shrink-0 h-[30vh] min-h-[180px] flex items-center justify-center px-6 pt-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="animate-fade-in-up">
           {illustration}
-        </motion.div>
+        </div>
       </div>
 
       {/* 下部: 白カード */}
-      <motion.div
-        className="flex-1 mx-4 mb-4 rounded-3xl bg-white shadow-2xl overflow-hidden"
+      <div
+        className="flex-1 mx-4 mb-4 rounded-3xl bg-white shadow-2xl overflow-hidden animate-slide-up-card"
         style={{
           boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)',
         }}
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
       >
         <div className="flex flex-col h-full px-6 py-6">
           {/* 見出し */}
@@ -70,19 +62,17 @@ export default function OnboardingSlide({
           </h2>
 
           {/* 本文 */}
-          <p className="text-sm text-gray-600 text-center leading-relaxed mb-5">
+          <p className="text-sm text-gray-600 text-center leading-relaxed mb-5 whitespace-pre-line">
             {description}
           </p>
 
           {/* チェックポイントリスト */}
           <div className="flex-1 space-y-3 mb-6">
             {points.map((point, index) => (
-              <motion.div
+              <div
                 key={index}
-                className="flex items-start gap-3"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+                className="flex items-start gap-3 animate-fade-in-left"
+                style={{ animationDelay: `${0.2 + index * 0.1}s` }}
               >
                 {/* チェックアイコン */}
                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center mt-0.5">
@@ -97,7 +87,7 @@ export default function OnboardingSlide({
                   </svg>
                 </div>
                 <span className="text-sm text-gray-700">{point}</span>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -129,7 +119,7 @@ export default function OnboardingSlide({
             ) : null}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
