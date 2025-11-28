@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import type { MatchWithTeams, Team } from '@/types/database';
 
@@ -64,15 +65,26 @@ function MatchCard({ match, myTeamId }: MatchCardProps) {
           <div className="flex items-center justify-between">
             {/* Home Team */}
             <div className="flex-1 text-center">
-              <div
-                className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{
-                  background: match.home_team_id === myTeamId ? 'var(--color-accent)' : 'rgba(255,255,255,0.1)',
-                  color: 'white',
-                }}
-              >
-                {match.home_team.short_name?.[0] || match.home_team.name[0]}
-              </div>
+              {match.home_team.logo_url ? (
+                <div className="w-10 h-10 mx-auto mb-1 relative">
+                  <Image
+                    src={match.home_team.logo_url}
+                    alt={match.home_team.name}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div
+                  className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{
+                    background: match.home_team_id === myTeamId ? 'var(--color-accent)' : 'rgba(255,255,255,0.1)',
+                    color: 'white',
+                  }}
+                >
+                  {match.home_team.short_name?.[0] || match.home_team.name[0]}
+                </div>
+              )}
               <p
                 className="text-xs font-medium truncate px-1"
                 style={{ color: match.home_team_id === myTeamId ? 'var(--color-accent)' : 'white' }}
@@ -99,15 +111,26 @@ function MatchCard({ match, myTeamId }: MatchCardProps) {
 
             {/* Away Team */}
             <div className="flex-1 text-center">
-              <div
-                className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{
-                  background: match.away_team_id === myTeamId ? 'var(--color-accent)' : 'rgba(255,255,255,0.1)',
-                  color: 'white',
-                }}
-              >
-                {match.away_team.short_name?.[0] || match.away_team.name[0]}
-              </div>
+              {match.away_team.logo_url ? (
+                <div className="w-10 h-10 mx-auto mb-1 relative">
+                  <Image
+                    src={match.away_team.logo_url}
+                    alt={match.away_team.name}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div
+                  className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{
+                    background: match.away_team_id === myTeamId ? 'var(--color-accent)' : 'rgba(255,255,255,0.1)',
+                    color: 'white',
+                  }}
+                >
+                  {match.away_team.short_name?.[0] || match.away_team.name[0]}
+                </div>
+              )}
               <p
                 className="text-xs font-medium truncate px-1"
                 style={{ color: match.away_team_id === myTeamId ? 'var(--color-accent)' : 'white' }}
@@ -153,15 +176,26 @@ function MatchCard({ match, myTeamId }: MatchCardProps) {
         <div className="flex items-center justify-between">
           {/* Home Team */}
           <div className="flex-1 text-center">
-            <div
-              className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{
-                background: match.home_team_id === myTeamId ? 'var(--color-accent)' : 'var(--bg-section)',
-                color: match.home_team_id === myTeamId ? 'white' : 'var(--text-secondary)',
-              }}
-            >
-              {match.home_team.short_name?.[0] || match.home_team.name[0]}
-            </div>
+            {match.home_team.logo_url ? (
+              <div className="w-10 h-10 mx-auto mb-1 relative">
+                <Image
+                  src={match.home_team.logo_url}
+                  alt={match.home_team.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
+                style={{
+                  background: match.home_team_id === myTeamId ? 'var(--color-accent)' : 'var(--bg-section)',
+                  color: match.home_team_id === myTeamId ? 'white' : 'var(--text-secondary)',
+                }}
+              >
+                {match.home_team.short_name?.[0] || match.home_team.name[0]}
+              </div>
+            )}
             <p
               className="text-xs font-medium truncate px-1"
               style={{ color: match.home_team_id === myTeamId ? 'var(--color-accent)' : 'var(--text-primary)' }}
@@ -192,15 +226,26 @@ function MatchCard({ match, myTeamId }: MatchCardProps) {
 
           {/* Away Team */}
           <div className="flex-1 text-center">
-            <div
-              className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{
-                background: match.away_team_id === myTeamId ? 'var(--color-accent)' : 'var(--bg-section)',
-                color: match.away_team_id === myTeamId ? 'white' : 'var(--text-secondary)',
-              }}
-            >
-              {match.away_team.short_name?.[0] || match.away_team.name[0]}
-            </div>
+            {match.away_team.logo_url ? (
+              <div className="w-10 h-10 mx-auto mb-1 relative">
+                <Image
+                  src={match.away_team.logo_url}
+                  alt={match.away_team.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center text-sm font-bold"
+                style={{
+                  background: match.away_team_id === myTeamId ? 'var(--color-accent)' : 'var(--bg-section)',
+                  color: match.away_team_id === myTeamId ? 'white' : 'var(--text-secondary)',
+                }}
+              >
+                {match.away_team.short_name?.[0] || match.away_team.name[0]}
+              </div>
+            )}
             <p
               className="text-xs font-medium truncate px-1"
               style={{ color: match.away_team_id === myTeamId ? 'var(--color-accent)' : 'var(--text-primary)' }}

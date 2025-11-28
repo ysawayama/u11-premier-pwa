@@ -162,19 +162,19 @@ export default function LeaguePage() {
               <div className="card overflow-hidden">
                 {/* Table Header */}
                 <div
-                  className="grid grid-cols-[24px_1fr_28px_28px_28px_28px_36px] gap-0.5 px-2 py-2 text-[10px] font-semibold"
+                  className="flex items-center px-3 py-2 text-[10px] font-semibold"
                   style={{
                     background: 'var(--bg-header)',
                     color: 'rgba(255,255,255,0.6)',
                   }}
                 >
-                  <span className="text-center">#</span>
-                  <span>チーム</span>
-                  <span className="text-center">試</span>
-                  <span className="text-center">勝</span>
-                  <span className="text-center">分</span>
-                  <span className="text-center">負</span>
-                  <span className="text-center">点</span>
+                  <span className="w-6 text-center">#</span>
+                  <span className="flex-1 min-w-0">チーム</span>
+                  <span className="w-7 text-center">試</span>
+                  <span className="w-7 text-center">勝</span>
+                  <span className="w-7 text-center">分</span>
+                  <span className="w-7 text-center">負</span>
+                  <span className="w-8 text-center">点</span>
                 </div>
 
                 {/* Table Body */}
@@ -189,17 +189,17 @@ export default function LeaguePage() {
                       <Link
                         key={standing.id}
                         href={`/teams/${standing.team_id}`}
-                        className={`grid grid-cols-[24px_1fr_28px_28px_28px_28px_36px] gap-0.5 px-2 py-2.5 items-center transition-colors ${rankClass} ${isMyTeam ? 'my-team-row' : ''}`}
+                        className={`flex items-center px-3 py-2 transition-colors ${rankClass} ${isMyTeam ? 'my-team-row' : ''}`}
                       >
                         {/* Rank */}
-                        <span className="text-sm font-bold text-center">
+                        <span className="w-6 text-sm font-bold text-center">
                           {rankIcon || (
                             <span style={{ color: 'var(--text-secondary)' }}>{rank}</span>
                           )}
                         </span>
 
                         {/* Team Name */}
-                        <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="flex-1 flex items-center gap-1.5 min-w-0">
                           {standing.team.logo_url ? (
                             <div className="w-6 h-6 flex-shrink-0 relative">
                               <Image
@@ -232,31 +232,31 @@ export default function LeaguePage() {
 
                         {/* Stats */}
                         <span
-                          className="text-xs text-center"
+                          className="w-7 text-xs text-center"
                           style={{ color: 'var(--text-secondary)' }}
                         >
                           {standing.matches_played}
                         </span>
                         <span
-                          className="text-xs text-center"
+                          className="w-7 text-xs text-center"
                           style={{ color: 'var(--color-win)' }}
                         >
                           {standing.wins}
                         </span>
                         <span
-                          className="text-xs text-center"
+                          className="w-7 text-xs text-center"
                           style={{ color: 'var(--color-draw)' }}
                         >
                           {standing.draws}
                         </span>
                         <span
-                          className="text-xs text-center"
+                          className="w-7 text-xs text-center"
                           style={{ color: 'var(--color-lose)' }}
                         >
                           {standing.losses}
                         </span>
                         <span
-                          className="text-sm font-bold text-center"
+                          className="w-8 text-sm font-bold text-center"
                           style={{ color: 'var(--color-navy)' }}
                         >
                           {standing.points}
