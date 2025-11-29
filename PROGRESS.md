@@ -148,7 +148,7 @@ TypeError: Cannot read properties of null (reading 'useContext')
 #### 機能追加
 - [x] チャットページの実装（基本機能は完了）
 - [x] マッチメイク機能の実装（募集作成・一覧・取り消し）
-- [ ] アルバム機能の実装
+- [x] アルバム機能の実装（作成・編集・削除、写真追加・表示）
 
 ---
 
