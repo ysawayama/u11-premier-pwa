@@ -9,6 +9,13 @@ type SplashIntroProps = {
   onFinished?: () => void;
 };
 
+type Team = {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  short_name: string | null;
+};
+
 // チームロゴの位置データ（円形配置用）
 const TEAM_POSITIONS = [
   { angle: 0 },
@@ -25,40 +32,64 @@ const TEAM_POSITIONS = [
 
 /**
  * U-11 PREMIER LEAGUE スプラッシュ画面
- * CSSアニメーション版（SSR対応）
+ * ユーザーの所属チームロゴ → リーグロゴへの遷移演出
  */
 export default function SplashIntro({ onFinished }: SplashIntroProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [phase, setPhase] = useState<'loading' | 'teams' | 'logo' | 'fadeOut'>('loading');
-  const [teams, setTeams] = useState<Array<{ id: string; name: string; logo_url: string | null; short_name: string | null }>>([]);
+  const [phase, setPhase] = useState<'loading' | 'myTeam' | 'transition' | 'leagueLogo' | 'fadeOut'>('loading');
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [myTeam, setMyTeam] = useState<Team | null>(null);
 
   useEffect(() => {
-    // チームデータを取得
-    const fetchTeams = async () => {
-      const supabase = createClient();
-      const { data } = await supabase
+    const supabase = createClient();
+
+    // ユーザーの所属チームとリーグチームを取得
+    const fetchData = async () => {
+      // 全チーム取得
+      const { data: teamsData } = await supabase
         .from('teams')
         .select('id, name, logo_url, short_name')
         .eq('is_active', true)
         .limit(10);
-      if (data) setTeams(data);
-    };
-    fetchTeams();
+      if (teamsData) setTeams(teamsData);
 
-    // タイムライン: チーム表示 -> ロゴ表示 -> フェードアウト
-    const timer1 = setTimeout(() => setPhase('teams'), 300);
-    const timer2 = setTimeout(() => setPhase('logo'), 1800);
-    const timer3 = setTimeout(() => setPhase('fadeOut'), 3500);
-    const timer4 = setTimeout(() => {
+      // ログインユーザーの所属チームを取得
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: playerData } = await supabase
+          .from('players')
+          .select('team:teams(id, name, logo_url, short_name)')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (playerData?.team) {
+          // teamがオブジェクトの場合の型アサーション
+          const teamData = playerData.team as unknown as Team;
+          setMyTeam(teamData);
+        }
+      }
+    };
+    fetchData();
+
+    // タイムライン:
+    // loading(300ms) -> myTeam(1200ms) -> transition(800ms) -> leagueLogo(1500ms) -> fadeOut(500ms)
+    const timer1 = setTimeout(() => setPhase('myTeam'), 300);
+    const timer2 = setTimeout(() => setPhase('transition'), 1500);
+    const timer3 = setTimeout(() => setPhase('leagueLogo'), 2300);
+    const timer4 = setTimeout(() => setPhase('fadeOut'), 3800);
+    const timer5 = setTimeout(() => {
       setIsVisible(false);
       onFinished?.();
-    }, 4000);
+    }, 4300);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
+      clearTimeout(timer5);
     };
   }, [onFinished]);
 
@@ -86,16 +117,53 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
         }}
       />
 
-      {/* 回転するチームロゴ円 */}
+      {/* ===== Phase 1: 所属チームロゴ（中央に大きく） ===== */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div
+          className={`transition-all duration-700 ${
+            phase === 'myTeam'
+              ? 'opacity-100 scale-100'
+              : phase === 'transition'
+              ? 'opacity-0 scale-50'
+              : 'opacity-0 scale-90'
+          }`}
+        >
+          <div className="bg-white rounded-3xl p-8 shadow-2xl">
+            {myTeam?.logo_url ? (
+              <Image
+                src={myTeam.logo_url}
+                alt={myTeam.name}
+                width={160}
+                height={160}
+                className="w-40 h-40 object-contain"
+                priority
+              />
+            ) : (
+              <div className="w-40 h-40 flex items-center justify-center">
+                <span className="text-5xl font-bold text-blue-900">
+                  {myTeam?.short_name?.[0] || myTeam?.name?.[0] || 'U11'}
+                </span>
+              </div>
+            )}
+          </div>
+          {myTeam && (
+            <p className="text-white/90 text-center mt-4 text-lg font-bold tracking-wide">
+              {myTeam.name}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ===== Phase 2-3: 回転するチームロゴ円 ===== */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div
           className={`relative w-[320px] h-[320px] transition-all duration-1000 ${
-            phase === 'teams' || phase === 'logo'
+            phase === 'transition' || phase === 'leagueLogo'
               ? 'opacity-100 scale-100'
               : 'opacity-0 scale-90'
-          } ${phase === 'logo' ? 'animate-spin-slow' : ''}`}
+          }`}
           style={{
-            animation: phase === 'logo' ? 'spin 20s linear infinite' : 'none',
+            animation: phase === 'leagueLogo' ? 'spin 20s linear infinite' : 'none',
           }}
         >
           {teams.slice(0, 10).map((team, index) => {
@@ -103,16 +171,19 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
             const radius = 130;
             const x = Math.cos((pos.angle - 90) * Math.PI / 180) * radius;
             const y = Math.sin((pos.angle - 90) * Math.PI / 180) * radius;
+            const isMyTeam = myTeam && team.id === myTeam.id;
 
             return (
               <div
                 key={team.id}
-                className={`absolute w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden transition-all duration-500`}
+                className={`absolute w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden transition-all duration-500 ${
+                  isMyTeam ? 'ring-2 ring-orange-400 ring-offset-2 ring-offset-transparent' : ''
+                }`}
                 style={{
                   left: `calc(50% + ${x}px - 24px)`,
                   top: `calc(50% + ${y}px - 24px)`,
-                  opacity: phase === 'teams' || phase === 'logo' ? 1 : 0,
-                  transform: `scale(${phase === 'teams' || phase === 'logo' ? 1 : 0})`,
+                  opacity: phase === 'transition' || phase === 'leagueLogo' ? 1 : 0,
+                  transform: `scale(${phase === 'transition' || phase === 'leagueLogo' ? 1 : 0})`,
                   transitionDelay: `${index * 50}ms`,
                 }}
               >
@@ -135,15 +206,13 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
         </div>
       </div>
 
-      {/* センターロゴ */}
+      {/* ===== Phase 3: リーグロゴ（センター） ===== */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
           className={`transition-all duration-700 ${
-            phase === 'logo'
+            phase === 'leagueLogo'
               ? 'opacity-100 scale-100'
-              : phase === 'teams'
-              ? 'opacity-0 scale-90'
-              : 'opacity-0 scale-95'
+              : 'opacity-0 scale-90'
           }`}
         >
           <div className="bg-white/95 rounded-3xl px-8 py-6 shadow-2xl backdrop-blur-sm">
@@ -188,7 +257,7 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
       <div className="absolute bottom-20 left-0 right-0 flex justify-center">
         <div
           className={`flex gap-1 transition-opacity duration-300 ${
-            phase === 'loading' || phase === 'teams' ? 'opacity-100' : 'opacity-0'
+            phase === 'loading' || phase === 'myTeam' ? 'opacity-100' : 'opacity-0'
           }`}
         >
           {[0, 1, 2].map((i) => (
