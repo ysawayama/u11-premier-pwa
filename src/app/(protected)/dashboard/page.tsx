@@ -223,8 +223,13 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content - 白カードベース */}
-      <main className="px-4 py-4">
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 space-y-5" style={{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' }}>
+      <main className="px-4 py-4 lg:px-8 lg:py-6 max-w-7xl mx-auto">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 lg:p-6" style={{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' }}>
+        {/* PC: 2カラム / モバイル: 1カラム */}
+        <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-6 space-y-5 lg:space-y-0">
+
+        {/* 左カラム: メインコンテンツ */}
+        <div className="space-y-5">
         {/* My Next Match */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -325,6 +330,9 @@ export default function DashboardPage() {
                 const isMyMatch = myTeam && (match.home_team_id === myTeam.id || match.away_team_id === myTeam.id);
                 const today = isToday(match.match_date);
                 const isLive = match.status === 'in_progress';
+                // チームの順位を取得
+                const homeTeamRank = standings.find((s) => s.team_id === match.home_team_id)?.rank;
+                const awayTeamRank = standings.find((s) => s.team_id === match.away_team_id)?.rank;
 
                 return (
                   <Link key={match.id} href={`/matches/${match.id}`}>
@@ -347,7 +355,7 @@ export default function DashboardPage() {
 
                       <div className="flex items-center justify-between">
                         {/* ホームチーム */}
-                        <div className="flex items-center gap-1.5 flex-1">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
                           {match.home_team.logo_url ? (
                             <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden bg-white">
                               <Image
@@ -363,12 +371,19 @@ export default function DashboardPage() {
                               <span className="text-[10px] text-gray-500 font-bold">{(match.home_team.short_name || match.home_team.name).charAt(0)}</span>
                             </div>
                           )}
-                          <span
-                            className="text-sm font-medium truncate"
-                            style={{ color: isLive ? 'white' : (isMyMatch && match.home_team_id === myTeam?.id ? 'var(--color-accent)' : 'var(--text-primary)') }}
-                          >
-                            {match.home_team.short_name || match.home_team.name}
-                          </span>
+                          <div className="flex flex-col min-w-0">
+                            <span
+                              className="text-sm font-medium truncate"
+                              style={{ color: isLive ? 'white' : (isMyMatch && match.home_team_id === myTeam?.id ? 'var(--color-accent)' : 'var(--text-primary)') }}
+                            >
+                              {match.home_team.short_name || match.home_team.name}
+                            </span>
+                            {homeTeamRank && (
+                              <span className="text-[10px]" style={{ color: isLive ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)' }}>
+                                現在{homeTeamRank}位
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-2 mx-3">
@@ -388,13 +403,20 @@ export default function DashboardPage() {
                         </div>
 
                         {/* アウェイチーム */}
-                        <div className="flex items-center gap-1.5 flex-1 justify-end">
-                          <span
-                            className="text-sm font-medium truncate"
-                            style={{ color: isLive ? 'white' : (isMyMatch && match.away_team_id === myTeam?.id ? 'var(--color-accent)' : 'var(--text-primary)') }}
-                          >
-                            {match.away_team.short_name || match.away_team.name}
-                          </span>
+                        <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                          <div className="flex flex-col items-end min-w-0">
+                            <span
+                              className="text-sm font-medium truncate"
+                              style={{ color: isLive ? 'white' : (isMyMatch && match.away_team_id === myTeam?.id ? 'var(--color-accent)' : 'var(--text-primary)') }}
+                            >
+                              {match.away_team.short_name || match.away_team.name}
+                            </span>
+                            {awayTeamRank && (
+                              <span className="text-[10px]" style={{ color: isLive ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)' }}>
+                                現在{awayTeamRank}位
+                              </span>
+                            )}
+                          </div>
                           {match.away_team.logo_url ? (
                             <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden bg-white">
                               <Image
@@ -424,6 +446,59 @@ export default function DashboardPage() {
           )}
         </section>
 
+        {/* Quick Links - 左カラムに配置 */}
+        <section>
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+            クイックアクセス
+          </h2>
+          <div className="grid grid-cols-4 gap-3">
+            {myTeam && (
+              <Link
+                href={`/team-portal/${myTeam.id}`}
+                className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+              >
+                <span className="text-2xl">🏟️</span>
+                <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+                  チーム
+                </span>
+              </Link>
+            )}
+            {myTeam && (
+              <Link
+                href={`/team-portal/${myTeam.id}/my-page`}
+                className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+              >
+                <span className="text-2xl">👤</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  マイページ
+                </span>
+              </Link>
+            )}
+            <Link
+              href="/stats"
+              className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+            >
+              <span className="text-2xl">📊</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                統計
+              </span>
+            </Link>
+            <Link
+              href="/standings"
+              className="card flex flex-col items-center gap-1 p-3 transition-shadow"
+            >
+              <span className="text-2xl">🏆</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                順位表
+              </span>
+            </Link>
+          </div>
+        </section>
+
+        </div>
+
+        {/* 右カラム: サイドバー（順位表のみ） */}
+        <div className="space-y-5">
         {/* Standings */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -508,63 +583,19 @@ export default function DashboardPage() {
             )}
           </div>
         </section>
+        </div>
+        {/* サイドバー終了 */}
 
-        {/* Quick Links */}
-        <section>
-          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-            クイックアクセス
-          </h2>
-          <div className="grid grid-cols-4 gap-3">
-            {myTeam && (
-              <Link
-                href={`/team-portal/${myTeam.id}`}
-                className="card flex flex-col items-center gap-1 p-3 transition-shadow"
-              >
-                <span className="text-2xl">🏟️</span>
-                <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-                  チーム
-                </span>
-              </Link>
-            )}
-            {myTeam && (
-              <Link
-                href={`/team-portal/${myTeam.id}/my-page`}
-                className="card flex flex-col items-center gap-1 p-3 transition-shadow"
-              >
-                <span className="text-2xl">👤</span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  マイページ
-                </span>
-              </Link>
-            )}
-            <Link
-              href="/stats"
-              className="card flex flex-col items-center gap-1 p-3 transition-shadow"
-            >
-              <span className="text-2xl">📊</span>
-              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                統計
-              </span>
-            </Link>
-            <Link
-              href="/standings"
-              className="card flex flex-col items-center gap-1 p-3 transition-shadow"
-            >
-              <span className="text-2xl">🏆</span>
-              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                順位表
-              </span>
-            </Link>
-          </div>
-        </section>
+        </div>
+        {/* 2カラムグリッド終了 */}
 
-        {/* Admin Section */}
+        {/* Admin Section - 2カラムの外、フル幅 */}
         {(user?.user_type === 'coach' || user?.user_type === 'admin') && (
-          <section>
+          <section className="mt-5 pt-5 border-t border-gray-100">
             <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
               管理機能
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <Link href="/admin/matches" className="card p-4 flex items-center gap-3" style={{ borderLeft: '4px solid var(--color-accent)' }}>
                 <span className="text-2xl">📝</span>
                 <div>
