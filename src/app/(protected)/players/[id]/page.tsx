@@ -78,7 +78,7 @@ export default function PlayerDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function PlayerDetailPage() {
           <p className="text-red-600">{error || '選手が見つかりません'}</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             戻る
           </button>
@@ -104,17 +104,17 @@ export default function PlayerDetailPage() {
   const age = calculateAge(player.date_of_birth);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-primary-light to-blue-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex gap-4 text-sm text-blue-600">
-            <Link href="/players" className="hover:text-blue-700">
+          <div className="flex gap-4 text-sm text-primary">
+            <Link href="/players" className="hover:text-primary-hover">
               ← 選手一覧
             </Link>
             <Link
               href={`/teams/${player.team.id}`}
-              className="hover:text-blue-700"
+              className="hover:text-primary-hover"
             >
               チーム詳細
             </Link>
@@ -126,7 +126,7 @@ export default function PlayerDetailPage() {
         {/* デジタル選手証カード */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* カードヘッダー */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
+          <div className="bg-gradient-to-r from-navy-light to-navy text-white p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-90">U-11プレミアリーグ</p>
@@ -165,7 +165,7 @@ export default function PlayerDetailPage() {
                     <dd className="text-sm text-gray-900 font-medium">
                       <Link
                         href={`/teams/${player.team.id}`}
-                        className="text-blue-600 hover:text-blue-700 hover:underline"
+                        className="text-primary hover:text-primary-hover hover:underline"
                       >
                         {player.team.name}
                       </Link>
@@ -275,7 +275,7 @@ export default function PlayerDetailPage() {
         <div className="mt-6 flex gap-4 justify-center">
           <button
             onClick={() => window.print()}
-            className="px-6 py-3 bg-white text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+            className="px-6 py-3 bg-white text-primary border-2 border-primary rounded-lg hover:bg-blue-50 font-medium transition-colors"
           >
             印刷する
           </button>

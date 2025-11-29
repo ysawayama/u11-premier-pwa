@@ -1,5 +1,31 @@
 @import "tailwindcss";
 
+/* ========== Tailwind Theme Extension ========== */
+@theme {
+  /* Brand Colors */
+  --color-navy: #0A1A2F;
+  --color-navy-light: #1E3A5F;
+  --color-accent: #E63946;
+  --color-accent-light: #FEE8EA;
+
+  /* Primary (replaces blue-600/700) */
+  --color-primary: #1E40AF;
+  --color-primary-hover: #1E3A8A;
+  --color-primary-light: #DBEAFE;
+
+  /* Status Colors */
+  --color-live: #10B981;
+  --color-live-bg: #D1FAE5;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+
+  /* Ranking */
+  --color-gold: #F59E0B;
+  --color-silver: #94A3B8;
+  --color-bronze: #CD7F32;
+}
+
 /* U11 Premier Design System v3.2 - NEO-FUTURE STADIUM */
 :root {
   /* ========== Background ========== */

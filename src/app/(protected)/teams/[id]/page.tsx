@@ -138,7 +138,7 @@ export default function TeamDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -152,7 +152,7 @@ export default function TeamDetailPage() {
           <p className="text-red-600">{error || 'チームが見つかりません'}</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             戻る
           </button>
@@ -176,7 +176,7 @@ export default function TeamDetailPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           </div>
         ) : (
-          <div className="h-64 md:h-80 bg-gradient-to-r from-blue-600 to-blue-800" />
+          <div className="h-64 md:h-80 bg-gradient-to-r from-navy-light to-navy" />
         )}
 
         {/* ヘッダーオーバーレイ */}
@@ -255,7 +255,7 @@ export default function TeamDetailPage() {
                 )}
                 {team.concept && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <h3 className="font-semibold text-blue-900 mb-2">コンセプト</h3>
+                    <h3 className="font-semibold text-navy mb-2">コンセプト</h3>
                     <p className="text-blue-800">{team.concept}</p>
                   </div>
                 )}
@@ -296,11 +296,11 @@ export default function TeamDetailPage() {
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <p className="text-sm text-gray-600">勝点</p>
-                    <p className="text-3xl font-bold text-blue-600">{standing.points}</p>
+                    <p className="text-3xl font-bold text-primary">{standing.points}</p>
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <Link href="/standings" className="text-blue-600 hover:underline text-sm">
+                  <Link href="/standings" className="text-primary hover:underline text-sm">
                     全順位表を見る →
                   </Link>
                 </div>
@@ -366,31 +366,31 @@ export default function TeamDetailPage() {
                 <div className="space-y-2">
                   {team.website_url && (
                     <a href={team.website_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-blue-600 hover:underline">
+                       className="flex items-center gap-2 text-primary hover:underline">
                       <span>🌐</span> ウェブサイト
                     </a>
                   )}
                   {team.sns_twitter && (
                     <a href={team.sns_twitter} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-blue-600 hover:underline">
+                       className="flex items-center gap-2 text-primary hover:underline">
                       <span>𝕏</span> Twitter / X
                     </a>
                   )}
                   {team.sns_instagram && (
                     <a href={team.sns_instagram} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-blue-600 hover:underline">
+                       className="flex items-center gap-2 text-primary hover:underline">
                       <span>📷</span> Instagram
                     </a>
                   )}
                   {team.sns_facebook && (
                     <a href={team.sns_facebook} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-blue-600 hover:underline">
+                       className="flex items-center gap-2 text-primary hover:underline">
                       <span>📘</span> Facebook
                     </a>
                   )}
                   {team.sns_youtube && (
                     <a href={team.sns_youtube} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-blue-600 hover:underline">
+                       className="flex items-center gap-2 text-primary hover:underline">
                       <span>▶️</span> YouTube
                     </a>
                   )}
@@ -414,7 +414,7 @@ export default function TeamDetailPage() {
                   {team.accepting_matches && (
                     <button
                       onClick={() => { setInquiryType('match'); setShowInquiryForm(true); }}
-                      className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
                     >
                       練習試合を申し込む
                     </button>
@@ -451,25 +451,25 @@ export default function TeamDetailPage() {
               <form onSubmit={handleInquirySubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">お名前 *</label>
-                  <input name="name" required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                  <input name="name" required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス *</label>
-                  <input name="email" type="email" required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                  <input name="email" type="email" required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
-                  <input name="phone" type="tel" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                  <input name="phone" type="tel" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary" />
                 </div>
                 {inquiryType === 'join' && (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">お子様のお名前</label>
-                      <input name="child_name" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                      <input name="child_name" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">学年</label>
-                      <select name="child_grade" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                      <select name="child_grade" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary">
                         <option value="">選択してください</option>
                         <option value="年中">年中</option>
                         <option value="年長">年長</option>
@@ -485,7 +485,7 @@ export default function TeamDetailPage() {
                 )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">メッセージ *</label>
-                  <textarea name="message" required rows={4} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  <textarea name="message" required rows={4} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder={
                       inquiryType === 'join' ? '体験入団を希望します。いつ見学に行けますか？' :
                       inquiryType === 'match' ? '練習試合を希望します。希望日程: ...' :
@@ -493,7 +493,7 @@ export default function TeamDetailPage() {
                     }
                   />
                 </div>
-                <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                <button type="submit" className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium">
                   送信する
                 </button>
               </form>

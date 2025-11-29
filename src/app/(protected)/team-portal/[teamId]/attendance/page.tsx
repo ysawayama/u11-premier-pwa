@@ -216,7 +216,7 @@ export default function AttendancePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -260,7 +260,7 @@ export default function AttendancePage() {
                   </div>
                   <button
                     onClick={() => setSelectedSchedule(selectedSchedule?.id === schedule.id ? null : schedule)}
-                    className="text-blue-600 hover:text-blue-700 text-sm"
+                    className="text-primary hover:text-primary-hover text-sm"
                   >
                     {selectedSchedule?.id === schedule.id ? '閉じる' : '詳細'}
                   </button>

@@ -211,7 +211,7 @@ export default function StatsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function StatsPage() {
           <p className="text-red-600">{error}</p>
           <button
             onClick={loadStats}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             再読み込み
           </button>
@@ -240,10 +240,10 @@ export default function StatsPage() {
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-900">選手統計</h1>
+            <h1 className="text-2xl font-bold text-navy">選手統計</h1>
             <Link
               href="/dashboard"
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-primary hover:text-primary-hover"
             >
               ← ダッシュボード
             </Link>
@@ -255,7 +255,7 @@ export default function StatsPage() {
               onClick={() => setSortBy('goals')}
               className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                 sortBy === 'goals'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
@@ -313,7 +313,7 @@ export default function StatsPage() {
                 <p className="text-xs text-gray-600 mb-4">
                   {stat.player.team.short_name || stat.player.team.name}
                 </p>
-                <div className="text-3xl font-bold text-blue-600">
+                <div className="text-3xl font-bold text-primary">
                   {sortBy === 'goals' ? stat.goals : stat.assists}
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
@@ -326,7 +326,7 @@ export default function StatsPage() {
 
         {/* 全ランキング */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800">
+          <div className="px-6 py-4 bg-gradient-to-r from-navy-light to-navy">
             <h2 className="text-lg font-semibold text-white">
               全選手ランキング
             </h2>
@@ -373,7 +373,7 @@ export default function StatsPage() {
                     <td className="py-3 px-4">
                       <Link
                         href={`/players/${stat.player.id}`}
-                        className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                        className="text-primary hover:text-primary-hover font-medium hover:underline"
                       >
                         {stat.player.uniform_number && `#${stat.player.uniform_number} `}
                         {stat.player.family_name} {stat.player.given_name}
@@ -382,12 +382,12 @@ export default function StatsPage() {
                     <td className="py-3 px-4 text-sm text-gray-600">
                       <Link
                         href={`/teams/${stat.player.team.id}`}
-                        className="hover:text-blue-600"
+                        className="hover:text-primary"
                       >
                         {stat.player.team.short_name || stat.player.team.name}
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-center font-bold text-blue-600">
+                    <td className="py-3 px-4 text-center font-bold text-primary">
                       {stat.goals}
                     </td>
                     <td className="py-3 px-4 text-center font-medium text-green-600">

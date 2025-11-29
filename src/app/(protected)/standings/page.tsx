@@ -97,7 +97,7 @@ export default function StandingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function StandingsPage() {
           <p className="text-red-600">{error}</p>
           <button
             onClick={loadStandings}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             再読み込み
           </button>
@@ -126,10 +126,10 @@ export default function StandingsPage() {
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl sm:text-2xl font-bold text-blue-900">順位表</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-navy">順位表</h1>
             <Link
               href="/dashboard"
-              className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 min-h-[44px] flex items-center"
+              className="text-xs sm:text-sm text-primary hover:text-primary-hover min-h-[44px] flex items-center"
             >
               <span className="hidden sm:inline">← ダッシュボード</span>
               <span className="sm:hidden">🏠</span>
@@ -175,7 +175,7 @@ export default function StandingsPage() {
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
                         <p className="text-xs text-gray-600">勝点</p>
-                        <p className="text-2xl font-bold text-blue-600">
+                        <p className="text-2xl font-bold text-primary">
                           {standing.points}
                         </p>
                       </div>
@@ -201,7 +201,7 @@ export default function StandingsPage() {
 
             {/* 全順位表 */}
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800">
+              <div className="px-6 py-4 bg-gradient-to-r from-navy-light to-navy">
                 <h2 className="text-lg font-semibold text-white">
                   全チーム順位表
                 </h2>
@@ -258,7 +258,7 @@ export default function StandingsPage() {
                         <td className="py-3 px-4">
                           <Link
                             href={`/teams/${standing.team.id}`}
-                            className="flex items-center gap-3 text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                            className="flex items-center gap-3 text-primary hover:text-primary-hover font-medium hover:underline"
                           >
                             <TeamLogo logoUrl={standing.team.logo_url} teamName={standing.team.name} size={28} />
                             {standing.team.name}
@@ -287,7 +287,7 @@ export default function StandingsPage() {
                             ? `+${standing.goal_difference}`
                             : standing.goal_difference}
                         </td>
-                        <td className="py-3 px-4 text-center text-lg font-bold text-blue-600">
+                        <td className="py-3 px-4 text-center text-lg font-bold text-primary">
                           {standing.points}
                         </td>
                       </tr>
@@ -313,7 +313,7 @@ export default function StandingsPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-blue-600">
+                        <p className="text-2xl font-bold text-primary">
                           {standing.points}
                         </p>
                         <p className="text-xs text-gray-600">pts</p>

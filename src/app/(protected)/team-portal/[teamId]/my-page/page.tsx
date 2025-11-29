@@ -264,7 +264,7 @@ export default function MyPlayerPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -275,7 +275,7 @@ export default function MyPlayerPage() {
         <p className="text-yellow-800">{error || '選手情報が見つかりません'}</p>
         <Link
           href={`/team-portal/${teamId}`}
-          className="mt-4 inline-block text-blue-600 hover:underline"
+          className="mt-4 inline-block text-primary hover:underline"
         >
           チームポータルに戻る
         </Link>
@@ -286,7 +286,7 @@ export default function MyPlayerPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* ヒーローセクション */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl sm:rounded-2xl overflow-hidden">
+      <div className="bg-gradient-to-r from-navy-light to-navy rounded-xl sm:rounded-2xl overflow-hidden">
         {player.hero_image_url && (
           <div className="relative h-32 sm:h-48 w-full">
             <Image
@@ -386,7 +386,7 @@ export default function MyPlayerPage() {
               <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">パフォーマンス</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                 <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
-                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">{performance?.practice_attendance_count || 0}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary">{performance?.practice_attendance_count || 0}</p>
                   <p className="text-xs sm:text-sm text-gray-600 mt-1">練習参加</p>
                 </div>
                 <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
@@ -503,7 +503,7 @@ export default function MyPlayerPage() {
               )}
               <Link
                 href={`/team-portal/${teamId}/schedule`}
-                className="mt-3 sm:mt-4 block text-center text-xs sm:text-sm text-blue-600 hover:underline py-2"
+                className="mt-3 sm:mt-4 block text-center text-xs sm:text-sm text-primary hover:underline py-2"
               >
                 スケジュール全体を見る
               </Link>
@@ -671,7 +671,7 @@ export default function MyPlayerPage() {
                     value={noteForm.title}
                     onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
                     placeholder="今日の練習、試合など"
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base"
                   />
                 </div>
 
@@ -682,7 +682,7 @@ export default function MyPlayerPage() {
                     onChange={(e) => setNoteForm({ ...noteForm, what_went_well: e.target.value })}
                     placeholder="今日うまくいったこと、成長を感じたこと"
                     rows={3}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base"
                   />
                 </div>
 
@@ -693,7 +693,7 @@ export default function MyPlayerPage() {
                     onChange={(e) => setNoteForm({ ...noteForm, what_to_improve: e.target.value })}
                     placeholder="もっと良くなりたいこと、課題"
                     rows={3}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base"
                   />
                 </div>
 
@@ -704,7 +704,7 @@ export default function MyPlayerPage() {
                     onChange={(e) => setNoteForm({ ...noteForm, next_goal: e.target.value })}
                     placeholder="次はこうする！という目標"
                     rows={2}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base"
                   />
                 </div>
 
@@ -732,7 +732,7 @@ export default function MyPlayerPage() {
                 <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
                   <button
                     onClick={handleSaveNote}
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base min-h-[48px]"
+                    className="flex-1 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium text-sm sm:text-base min-h-[48px]"
                   >
                     保存する
                   </button>
@@ -761,7 +761,7 @@ export default function MyPlayerPage() {
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900">サッカーノート</h2>
                 <button
                   onClick={() => setShowNoteForm(true)}
-                  className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[44px]"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-xs sm:text-sm min-h-[44px]"
                 >
                   + 新規ノート
                 </button>
@@ -769,14 +769,14 @@ export default function MyPlayerPage() {
 
               {notesLoading ? (
                 <div className="text-center py-8 sm:py-12">
-                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent"></div>
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
                 </div>
               ) : notes.length === 0 ? (
                 <div className="text-center py-8 sm:py-12">
                   <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">まだノートがありません</p>
                   <button
                     onClick={() => setShowNoteForm(true)}
-                    className="text-blue-600 hover:underline text-sm sm:text-base"
+                    className="text-primary hover:underline text-sm sm:text-base"
                   >
                     最初のノートを書いてみよう！
                   </button>
@@ -828,7 +828,7 @@ export default function MyPlayerPage() {
 
                       {note.next_goal && (
                         <div className="mb-2">
-                          <p className="text-[10px] sm:text-xs font-medium text-blue-600 mb-0.5 sm:mb-1">次の目標</p>
+                          <p className="text-[10px] sm:text-xs font-medium text-primary mb-0.5 sm:mb-1">次の目標</p>
                           <p className="text-xs sm:text-sm text-gray-700">{note.next_goal}</p>
                         </div>
                       )}
@@ -853,7 +853,7 @@ export default function MyPlayerPage() {
                       <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex gap-3 sm:gap-4">
                         <button
                           onClick={() => handleEditNote(note)}
-                          className="text-xs sm:text-sm text-blue-600 hover:underline py-1 min-h-[32px]"
+                          className="text-xs sm:text-sm text-primary hover:underline py-1 min-h-[32px]"
                         >
                           編集
                         </button>
@@ -877,7 +877,7 @@ export default function MyPlayerPage() {
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">マイアルバム</h2>
-            <button className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[44px]">
+            <button className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-xs sm:text-sm min-h-[44px]">
               + アルバム作成
             </button>
           </div>

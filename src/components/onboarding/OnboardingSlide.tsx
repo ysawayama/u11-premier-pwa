@@ -75,7 +75,7 @@ export default function OnboardingSlide({
                 style={{ animationDelay: `${0.2 + index * 0.1}s` }}
               >
                 {/* チェックアイコン */}
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center mt-0.5">
+                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary flex items-center justify-center mt-0.5">
                   <svg
                     className="w-3 h-3 text-white"
                     fill="none"

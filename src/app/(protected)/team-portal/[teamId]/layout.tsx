@@ -169,7 +169,7 @@ export default function TeamPortalLayout({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function TeamPortalLayout({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600">チームが見つかりません</p>
-          <Link href="/teams" className="mt-4 text-blue-600 hover:underline">
+          <Link href="/teams" className="mt-4 text-primary hover:underline">
             チーム一覧に戻る
           </Link>
         </div>
@@ -203,7 +203,7 @@ export default function TeamPortalLayout({
           <div className="space-y-3">
             <Link
               href={`/teams/${teamId}`}
-              className="block w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="block w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
             >
               チーム公開ページを見る
             </Link>
@@ -260,7 +260,7 @@ export default function TeamPortalLayout({
 
             <Link
               href="/dashboard"
-              className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 min-h-[44px] flex items-center px-2"
+              className="text-xs sm:text-sm text-primary hover:text-primary-hover min-h-[44px] flex items-center px-2"
             >
               <span className="hidden sm:inline">ダッシュボード</span>
               <span className="sm:hidden">🏠</span>
@@ -345,7 +345,7 @@ export default function TeamPortalLayout({
             <nav className="mb-3 sm:mb-4 flex items-center text-xs sm:text-sm text-gray-500">
               <Link
                 href={basePath}
-                className="hover:text-blue-600 transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 トップ
               </Link>

@@ -202,7 +202,7 @@ export default function RosterPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -214,7 +214,7 @@ export default function RosterPage() {
         {isManager && (
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[44px]"
+            className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-xs sm:text-sm min-h-[44px]"
           >
             <span className="hidden sm:inline">選手を追加</span>
             <span className="sm:hidden">+ 追加</span>
@@ -241,7 +241,7 @@ export default function RosterPage() {
           {isManager && (
             <button
               onClick={() => { resetForm(); setShowForm(true); }}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm"
             >
               最初の選手を追加
             </button>
@@ -259,7 +259,7 @@ export default function RosterPage() {
                 {/* 背番号 */}
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                   {player.uniform_number ? (
-                    <span className="text-xl font-bold text-blue-600">{player.uniform_number}</span>
+                    <span className="text-xl font-bold text-primary">{player.uniform_number}</span>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
@@ -287,7 +287,7 @@ export default function RosterPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
                     {selectedPlayer.uniform_number ? (
-                      <span className="text-2xl font-bold text-blue-600">{selectedPlayer.uniform_number}</span>
+                      <span className="text-2xl font-bold text-primary">{selectedPlayer.uniform_number}</span>
                     ) : (
                       <span className="text-gray-400 text-xl">-</span>
                     )}
@@ -334,7 +334,7 @@ export default function RosterPage() {
                 <div className="flex gap-2 mt-6 pt-4 border-t">
                   <button
                     onClick={() => { openEditForm(selectedPlayer); setSelectedPlayer(null); }}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                    className="flex-1 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover text-sm"
                   >
                     編集
                   </button>
@@ -462,7 +462,7 @@ export default function RosterPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover"
                 >
                   {editingPlayer ? '更新' : '登録'}
                 </button>

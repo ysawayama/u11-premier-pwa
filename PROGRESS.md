@@ -119,6 +119,20 @@ TypeError: Cannot read properties of null (reading 'useContext')
 - **ハイライト機能**: 円形配置で所属チームはオレンジの枠で強調表示
 - **フォールバック**: 未ログイン/所属チームなしの場合はデフォルト表示
 
+#### 2. カラーパレット統一
+**ファイル**: `src/app/globals.css` + 全コンポーネント
+- **Tailwind @theme拡張**でDesign Systemカラーを定義：
+  - `primary` / `primary-hover` / `primary-light` - ボタン・リンク用
+  - `navy` / `navy-light` - ヘッダー・タイトル用
+  - `accent` / `accent-light` - U-11ブランドカラー
+  - `success` / `warning` / `error` - ステータス用
+  - `gold` / `silver` / `bronze` - ランキング用
+- **一括置換**:
+  - `bg-blue-600` → `bg-primary`
+  - `text-blue-900` → `text-navy`
+  - `from-blue-600 to-blue-800` → `from-navy-light to-navy`
+  - `focus:ring-blue-*` → `focus:ring-primary`
+
 ---
 
 ### 未着手・次回タスク候補
@@ -127,7 +141,7 @@ TypeError: Cannot read properties of null (reading 'useContext')
 - [ ] ホーム画面アイコンの背景色が反映されていない可能性（再インストール必要）
 
 #### デザイン統一
-- [ ] 統一感のあるカラーパレット
+- [x] 統一感のあるカラーパレット
 - [ ] ボタン・カードコンポーネントの統一
 - [ ] アイコン使用の統一
 

@@ -135,7 +135,7 @@ export default function MatchesPage() {
       <PageWrapper header={headerContent}>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
             <p className="mt-4 text-gray-600">読み込み中...</p>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function MatchesPage() {
             <p className="text-red-600">{error}</p>
             <button
               onClick={loadData}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
             >
               再読み込み
             </button>
@@ -189,7 +189,7 @@ export default function MatchesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="チーム名や会場名で検索..."
-                className="flex-1 max-w-md px-4 py-2 rounded-lg text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20"
+                className="flex-1 max-w-md px-4 py-2 rounded-lg text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20"
               />
               {searchQuery && (
                 <button
@@ -210,7 +210,7 @@ export default function MatchesPage() {
                 onClick={() => setSelectedStatus('all')}
                 className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedStatus === 'all'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -220,7 +220,7 @@ export default function MatchesPage() {
                 onClick={() => setSelectedStatus('scheduled')}
                 className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                   selectedStatus === 'scheduled'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -302,7 +302,7 @@ export default function MatchesPage() {
                 id="team-filter"
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className="flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 min-h-[36px]"
+                className="flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20 min-h-[36px]"
               >
                 <option value="all">全チーム</option>
                 {teams.map((team) => (
@@ -323,7 +323,7 @@ export default function MatchesPage() {
                   onClick={() => setDateSortOrder('newest')}
                   className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[36px] ${
                     dateSortOrder === 'newest'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -333,7 +333,7 @@ export default function MatchesPage() {
                   onClick={() => setDateSortOrder('oldest')}
                   className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[36px] ${
                     dateSortOrder === 'oldest'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -389,9 +389,9 @@ export default function MatchesPage() {
                         className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                       >
                         {/* カードヘッダー */}
-                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-3 border-b border-blue-200">
+                        <div className="bg-gradient-to-r from-primary-light to-blue-50 px-4 py-3 border-b border-blue-200">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-blue-900 font-medium">
+                            <span className="text-xs text-navy font-medium">
                               {getMatchTypeLabel(match.match_type)}
                             </span>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
@@ -477,7 +477,7 @@ export default function MatchesPage() {
 
                           {/* アクションボタン */}
                           <div className="mt-3 flex justify-center">
-                            <span className="text-xs text-blue-600 font-medium">
+                            <span className="text-xs text-primary font-medium">
                               詳細を見る →
                             </span>
                           </div>

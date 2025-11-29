@@ -111,7 +111,7 @@ export default function TeamStatsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export default function TeamStatsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
             <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
               <p className="text-xs sm:text-sm text-gray-600">順位</p>
-              <p className="text-2xl sm:text-3xl font-bold text-blue-600">{standing.rank || '-'}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary">{standing.rank || '-'}</p>
             </div>
             <div className="text-center p-3 sm:p-4 bg-gray-50 rounded-lg">
               <p className="text-xs sm:text-sm text-gray-600">試合数</p>
@@ -163,7 +163,7 @@ export default function TeamStatsPage() {
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900">今後の試合</h3>
-            <Link href={`/team-portal/${teamId}/schedule`} className="text-xs sm:text-sm text-blue-600 hover:underline min-h-[44px] flex items-center">
+            <Link href={`/team-portal/${teamId}/schedule`} className="text-xs sm:text-sm text-primary hover:underline min-h-[44px] flex items-center">
               全て見る
             </Link>
           </div>
@@ -198,7 +198,7 @@ export default function TeamStatsPage() {
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900">最近の試合</h3>
-            <Link href={`/matches`} className="text-xs sm:text-sm text-blue-600 hover:underline min-h-[44px] flex items-center">
+            <Link href={`/matches`} className="text-xs sm:text-sm text-primary hover:underline min-h-[44px] flex items-center">
               全て見る
             </Link>
           </div>

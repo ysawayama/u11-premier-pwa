@@ -14,7 +14,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-light to-blue-50">
       <main className="text-center space-y-6 p-8 max-w-md">
         <div className="text-6xl">500</div>
         <h1 className="text-2xl font-bold text-gray-900">
@@ -25,7 +25,7 @@ export default function Error({
         </p>
         <button
           onClick={reset}
-          className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md transition-colors"
+          className="inline-block px-6 py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-lg shadow-md transition-colors"
         >
           もう一度試す
         </button>

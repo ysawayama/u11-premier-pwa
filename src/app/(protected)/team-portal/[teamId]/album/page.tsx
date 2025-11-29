@@ -251,7 +251,7 @@ export default function AlbumPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -277,7 +277,7 @@ export default function AlbumPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowPhotoForm(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover text-sm"
               >
                 写真を追加
               </button>
@@ -301,7 +301,7 @@ export default function AlbumPage() {
             {isManager && (
               <button
                 onClick={() => setShowPhotoForm(true)}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover text-sm"
               >
                 最初の写真を追加
               </button>
@@ -362,7 +362,7 @@ export default function AlbumPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover"
                 >
                   追加
                 </button>
@@ -449,7 +449,7 @@ export default function AlbumPage() {
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="flex-1 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover"
                   >
                     保存
                   </button>
@@ -477,7 +477,7 @@ export default function AlbumPage() {
         {isManager && (
           <button
             onClick={() => { resetAlbumForm(); setShowAlbumForm(true); }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm"
           >
             アルバムを作成
           </button>
@@ -491,7 +491,7 @@ export default function AlbumPage() {
           {isManager && (
             <button
               onClick={() => { resetAlbumForm(); setShowAlbumForm(true); }}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover text-sm"
             >
               最初のアルバムを作成
             </button>
@@ -572,7 +572,7 @@ export default function AlbumPage() {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover"
               >
                 {editingAlbum ? '保存' : '作成'}
               </button>

@@ -67,7 +67,7 @@ export default function PlayersPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function PlayersPage() {
           <p className="text-red-600">{error}</p>
           <button
             onClick={loadPlayers}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             再読み込み
           </button>
@@ -96,10 +96,10 @@ export default function PlayersPage() {
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-900">選手一覧</h1>
+            <h1 className="text-2xl font-bold text-navy">選手一覧</h1>
             <Link
               href="/dashboard"
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-primary hover:text-primary-hover"
             >
               ← ダッシュボード
             </Link>
@@ -112,7 +112,7 @@ export default function PlayersPage() {
               placeholder="選手名、チーム名で検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
@@ -124,7 +124,7 @@ export default function PlayersPage() {
                 onClick={() => setSelectedGrade(null)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   selectedGrade === null
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -136,7 +136,7 @@ export default function PlayersPage() {
                   onClick={() => setSelectedGrade(grade)}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                     selectedGrade === grade
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -225,7 +225,7 @@ export default function PlayersPage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           {player.uniform_number && (
-                            <span className="text-2xl font-bold text-blue-600">
+                            <span className="text-2xl font-bold text-primary">
                               {player.uniform_number}
                             </span>
                           )}
@@ -250,7 +250,7 @@ export default function PlayersPage() {
 
                       {/* アクションボタン */}
                       <div className="flex justify-end">
-                        <span className="text-xs text-blue-600 font-medium">
+                        <span className="text-xs text-primary font-medium">
                           選手証を見る →
                         </span>
                       </div>

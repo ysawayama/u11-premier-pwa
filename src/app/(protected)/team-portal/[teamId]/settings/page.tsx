@@ -281,7 +281,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                 value={profileForm.hero_image_url}
                 onChange={(e) => setProfileForm({ ...profileForm, hero_image_url: e.target.value })}
                 placeholder="https://example.com/hero.jpg"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
               />
               <p className="text-xs text-gray-500 mt-1">チームページのトップに表示される画像</p>
             </div>
@@ -365,7 +365,7 @@ export default function SettingsPage() {
                 onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
                 rows={5}
                 placeholder="クラブの歴史や特徴を記入してください"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -379,7 +379,7 @@ export default function SettingsPage() {
                 onChange={(e) => setProfileForm({ ...profileForm, concept: e.target.value })}
                 rows={4}
                 placeholder="チームの方針やコンセプトを記入してください"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -393,7 +393,7 @@ export default function SettingsPage() {
                 onChange={(e) => setProfileForm({ ...profileForm, philosophy: e.target.value })}
                 rows={2}
                 placeholder="チームの理念を記入してください"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -410,7 +410,7 @@ export default function SettingsPage() {
                   value={profileForm.representative_name}
                   onChange={(e) => setProfileForm({ ...profileForm, representative_name: e.target.value })}
                   placeholder="山田 太郎"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -422,7 +422,7 @@ export default function SettingsPage() {
                   value={profileForm.registration_status}
                   onChange={(e) => setProfileForm({ ...profileForm, registration_status: e.target.value })}
                   placeholder="NPO法人、一般社団法人など"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -434,7 +434,7 @@ export default function SettingsPage() {
                   value={profileForm.founded_year}
                   onChange={(e) => setProfileForm({ ...profileForm, founded_year: e.target.value })}
                   placeholder="2004"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -446,7 +446,7 @@ export default function SettingsPage() {
                   value={profileForm.home_ground}
                   onChange={(e) => setProfileForm({ ...profileForm, home_ground: e.target.value })}
                   placeholder="〇〇公園グラウンド"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div className="md:col-span-2">
@@ -458,7 +458,7 @@ export default function SettingsPage() {
                   value={profileForm.address}
                   onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
                   placeholder="神奈川県横浜市〇〇区..."
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -476,7 +476,7 @@ export default function SettingsPage() {
                   value={profileForm.website_url}
                   onChange={(e) => setProfileForm({ ...profileForm, website_url: e.target.value })}
                   placeholder="https://example.com"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -488,7 +488,7 @@ export default function SettingsPage() {
                   value={profileForm.sns_twitter}
                   onChange={(e) => setProfileForm({ ...profileForm, sns_twitter: e.target.value })}
                   placeholder="https://twitter.com/..."
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -500,7 +500,7 @@ export default function SettingsPage() {
                   value={profileForm.sns_instagram}
                   onChange={(e) => setProfileForm({ ...profileForm, sns_instagram: e.target.value })}
                   placeholder="https://instagram.com/..."
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -512,7 +512,7 @@ export default function SettingsPage() {
                   value={profileForm.sns_facebook}
                   onChange={(e) => setProfileForm({ ...profileForm, sns_facebook: e.target.value })}
                   placeholder="https://facebook.com/..."
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -524,7 +524,7 @@ export default function SettingsPage() {
                   value={profileForm.sns_youtube}
                   onChange={(e) => setProfileForm({ ...profileForm, sns_youtube: e.target.value })}
                   placeholder="https://youtube.com/..."
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -533,7 +533,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full md:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="w-full md:w-auto px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
               >
                 {saving ? '保存中...' : 'プロフィールを保存'}
               </button>
@@ -551,7 +551,7 @@ export default function SettingsPage() {
             {isManager && (
               <button
                 onClick={() => setShowInviteForm(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm"
               >
                 メンバーを招待
               </button>
@@ -607,7 +607,7 @@ export default function SettingsPage() {
                         navigator.clipboard.writeText(`${window.location.origin}/invite/${invitation.token}`);
                         alert('招待URLをコピーしました');
                       }}
-                      className="text-blue-600 hover:text-blue-700 text-sm"
+                      className="text-primary hover:text-primary-hover text-sm"
                     >
                       URLコピー
                     </button>
@@ -648,7 +648,7 @@ export default function SettingsPage() {
                   onChange={(e) => setInviteEmail(e.target.value)}
                   required
                   placeholder="example@email.com"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -658,7 +658,7 @@ export default function SettingsPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 >
                   <option value="player">選手</option>
                   <option value="guardian">保護者</option>
@@ -672,7 +672,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={inviting}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
               >
                 {inviting ? '招待中...' : '招待URLを生成'}
               </button>

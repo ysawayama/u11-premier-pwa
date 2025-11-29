@@ -106,7 +106,7 @@ export default function AdminMatchesPage() {
       <PageWrapper header={headerContent}>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
             <p className="mt-4 text-gray-600">読み込み中...</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function AdminMatchesPage() {
             <p className="text-red-600">{error}</p>
             <button
               onClick={loadMatches}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
             >
               再読み込み
             </button>
@@ -140,7 +140,7 @@ export default function AdminMatchesPage() {
           onClick={() => setSelectedStatus('all')}
           className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
             selectedStatus === 'all'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -150,7 +150,7 @@ export default function AdminMatchesPage() {
           onClick={() => setSelectedStatus('scheduled')}
           className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
             selectedStatus === 'scheduled'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -224,7 +224,7 @@ export default function AdminMatchesPage() {
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-blue-600 font-medium">
+                <span className="text-xs text-primary font-medium">
                   管理 →
                 </span>
               </div>

@@ -169,7 +169,7 @@ export default function TeamEditPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -183,7 +183,7 @@ export default function TeamEditPage() {
           <p className="text-red-600">{error || '権限がありません'}</p>
           <Link
             href={`/teams/${teamId}`}
-            className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 inline-block px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             チームページに戻る
           </Link>
@@ -198,7 +198,7 @@ export default function TeamEditPage() {
         {/* ヘッダー */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <Link href={`/teams/${teamId}`} className="text-blue-600 hover:underline text-sm">
+            <Link href={`/teams/${teamId}`} className="text-primary hover:underline text-sm">
               ← チームページに戻る
             </Link>
             {successMessage && (
@@ -235,7 +235,7 @@ export default function TeamEditPage() {
                   name="accepting_matches"
                   checked={formData.accepting_matches}
                   onChange={handleChange}
-                  className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"
+                  className="w-5 h-5 rounded text-primary focus:ring-primary"
                 />
                 <span className="text-gray-700">練習試合募集中</span>
                 <span className="text-sm text-gray-500">（チェックするとバッジが表示されます）</span>
@@ -275,7 +275,7 @@ export default function TeamEditPage() {
               value={formData.hero_image_url}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
             />
             <p className="text-xs text-gray-400 mt-2">
               ※ 画像URLを入力してください。推奨サイズ: 1920x600px以上
@@ -294,7 +294,7 @@ export default function TeamEditPage() {
                   onChange={handleChange}
                   rows={4}
                   placeholder="チームの特徴や雰囲気を紹介してください"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -305,7 +305,7 @@ export default function TeamEditPage() {
                   onChange={handleChange}
                   rows={2}
                   placeholder="例: 「楽しみながら上達する」をモットーに活動しています"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -316,7 +316,7 @@ export default function TeamEditPage() {
                   onChange={handleChange}
                   rows={3}
                   placeholder="チームの指導方針や大切にしていることを記載してください"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -327,7 +327,7 @@ export default function TeamEditPage() {
                   onChange={handleChange}
                   rows={3}
                   placeholder="過去の大会実績や受賞歴を記載してください"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -345,7 +345,7 @@ export default function TeamEditPage() {
                   value={formData.target_age}
                   onChange={handleChange}
                   placeholder="例: 小学1年生〜6年生"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -356,7 +356,7 @@ export default function TeamEditPage() {
                   value={formData.practice_location}
                   onChange={handleChange}
                   placeholder="例: ○○小学校グラウンド"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div className="md:col-span-2">
@@ -367,7 +367,7 @@ export default function TeamEditPage() {
                   onChange={handleChange}
                   rows={2}
                   placeholder="例: 土曜日 9:00-12:00、日曜日 13:00-16:00"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -378,7 +378,7 @@ export default function TeamEditPage() {
                   value={formData.monthly_fee}
                   onChange={handleChange}
                   placeholder="例: 3,000円/月"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -389,7 +389,7 @@ export default function TeamEditPage() {
                   value={formData.entry_fee}
                   onChange={handleChange}
                   placeholder="例: 5,000円（初回のみ）"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -407,7 +407,7 @@ export default function TeamEditPage() {
                   value={formData.website_url}
                   onChange={handleChange}
                   placeholder="https://example.com"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -419,7 +419,7 @@ export default function TeamEditPage() {
                     value={formData.sns_twitter}
                     onChange={handleChange}
                     placeholder="https://twitter.com/..."
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -430,7 +430,7 @@ export default function TeamEditPage() {
                     value={formData.sns_instagram}
                     onChange={handleChange}
                     placeholder="https://instagram.com/..."
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -441,7 +441,7 @@ export default function TeamEditPage() {
                     value={formData.sns_facebook}
                     onChange={handleChange}
                     placeholder="https://facebook.com/..."
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -452,7 +452,7 @@ export default function TeamEditPage() {
                     value={formData.sns_youtube}
                     onChange={handleChange}
                     placeholder="https://youtube.com/..."
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -470,7 +470,7 @@ export default function TeamEditPage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
             >
               {saving ? '保存中...' : '保存する'}
             </button>

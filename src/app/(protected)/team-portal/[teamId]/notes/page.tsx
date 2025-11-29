@@ -114,7 +114,7 @@ export default function TeamNotesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function TeamNotesPage() {
         <p className="text-yellow-800">{error || 'アクセス権限がありません'}</p>
         <Link
           href={`/team-portal/${teamId}`}
-          className="mt-4 inline-block text-blue-600 hover:underline"
+          className="mt-4 inline-block text-primary hover:underline"
         >
           チームポータルに戻る
         </Link>
@@ -161,7 +161,7 @@ export default function TeamNotesPage() {
               onClick={() => setFilter(item.key as FilterType)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filter === item.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >

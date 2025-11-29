@@ -454,7 +454,7 @@ export default function SchedulePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -500,7 +500,7 @@ export default function SchedulePage() {
             </div>
             <Link
               href={`/matches/${match.id}`}
-              className="text-blue-600 hover:text-blue-700 text-sm"
+              className="text-primary hover:text-primary-hover text-sm"
             >
               詳細
             </Link>
@@ -543,7 +543,7 @@ export default function SchedulePage() {
                     href={schedule.location_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-2 text-blue-600 hover:underline"
+                    className="ml-2 text-primary hover:underline"
                   >
                     地図
                   </a>
@@ -563,7 +563,7 @@ export default function SchedulePage() {
             <div className="flex items-center gap-2 ml-4">
               <button
                 onClick={() => openEditForm(schedule)}
-                className="text-blue-600 hover:text-blue-700 text-sm"
+                className="text-primary hover:text-primary-hover text-sm"
               >
                 編集
               </button>
@@ -620,7 +620,7 @@ export default function SchedulePage() {
           {canEdit && (
             <button
               onClick={() => { resetForm(); setShowForm(true); }}
-              className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[36px]"
+              className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-xs sm:text-sm min-h-[36px]"
             >
               <span className="hidden sm:inline">予定を追加</span>
               <span className="sm:hidden">+ 追加</span>
@@ -689,7 +689,7 @@ export default function SchedulePage() {
                     <span
                       className={`text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full ${
                         isToday
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-primary text-white'
                           : !dayInfo.isCurrentMonth
                           ? 'text-gray-400'
                           : dayOfWeek === 0
@@ -707,7 +707,7 @@ export default function SchedulePage() {
                           e.stopPropagation();
                           openNewFormWithDate(dayInfo.date);
                         }}
-                        className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded opacity-0 group-hover:opacity-100 sm:opacity-100"
+                        className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-blue-100 rounded opacity-0 group-hover:opacity-100 sm:opacity-100"
                         title="予定を追加"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -781,7 +781,7 @@ export default function SchedulePage() {
               {canEdit && (
                 <button
                   onClick={() => openNewFormWithDate(selectedDate)}
-                  className="text-blue-600 hover:text-blue-700 text-sm"
+                  className="text-primary hover:text-primary-hover text-sm"
                 >
                   予定を追加する
                 </button>
@@ -819,7 +819,7 @@ export default function SchedulePage() {
                     {canEdit && (
                       <button
                         onClick={() => openNewFormWithDate(date)}
-                        className="text-blue-600 hover:text-blue-700 text-sm"
+                        className="text-primary hover:text-primary-hover text-sm"
                       >
                         + 追加
                       </button>
@@ -861,7 +861,7 @@ export default function SchedulePage() {
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="例: U11リーグ 第5節"
                   />
                 </div>
@@ -871,7 +871,7 @@ export default function SchedulePage() {
                   <select
                     value={formData.event_type}
                     onChange={(e) => setFormData({ ...formData, event_type: e.target.value as EventType })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   >
                     {Object.entries(EVENT_TYPE_CONFIG).map(([key, config]) => (
                       <option key={key} value={key}>{config.label}</option>
@@ -885,7 +885,7 @@ export default function SchedulePage() {
                     id="is_all_day"
                     checked={formData.is_all_day}
                     onChange={(e) => setFormData({ ...formData, is_all_day: e.target.checked })}
-                    className="rounded text-blue-600"
+                    className="rounded text-primary"
                   />
                   <label htmlFor="is_all_day" className="text-sm text-gray-700">終日</label>
                 </div>
@@ -898,7 +898,7 @@ export default function SchedulePage() {
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                       required
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   {!formData.is_all_day && (
@@ -909,7 +909,7 @@ export default function SchedulePage() {
                         value={formData.start_time}
                         onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                         required={!formData.is_all_day}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       />
                     </div>
                   )}
@@ -922,7 +922,7 @@ export default function SchedulePage() {
                       type="date"
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   {!formData.is_all_day && (
@@ -932,7 +932,7 @@ export default function SchedulePage() {
                         type="time"
                         value={formData.end_time}
                         onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       />
                     </div>
                   )}
@@ -944,7 +944,7 @@ export default function SchedulePage() {
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="例: ○○グラウンド"
                   />
                 </div>
@@ -955,7 +955,7 @@ export default function SchedulePage() {
                     type="url"
                     value={formData.location_url}
                     onChange={(e) => setFormData({ ...formData, location_url: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="https://maps.google.com/..."
                   />
                 </div>
@@ -966,7 +966,7 @@ export default function SchedulePage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="予定の詳細を入力"
                   />
                 </div>
@@ -977,14 +977,14 @@ export default function SchedulePage() {
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     rows={2}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="内部メモなど"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
                 >
                   {editingSchedule ? '更新する' : '追加する'}
                 </button>

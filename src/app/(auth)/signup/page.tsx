@@ -72,7 +72,7 @@ export default function SignupPage() {
             className={`
               w-full px-4 py-3 rounded-lg border
               ${errors.email ? 'border-red-300' : 'border-gray-300'}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               transition-colors
             `}
             placeholder="example@email.com"
@@ -98,7 +98,7 @@ export default function SignupPage() {
             className={`
               w-full px-4 py-3 rounded-lg border
               ${errors.fullName ? 'border-red-300' : 'border-gray-300'}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               transition-colors
             `}
             placeholder="山田 太郎"
@@ -126,7 +126,7 @@ export default function SignupPage() {
             className={`
               w-full px-4 py-3 rounded-lg border
               ${errors.phone ? 'border-red-300' : 'border-gray-300'}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               transition-colors
             `}
             placeholder="090-1234-5678"
@@ -150,7 +150,7 @@ export default function SignupPage() {
             className={`
               w-full px-4 py-3 rounded-lg border
               ${errors.userType ? 'border-red-300' : 'border-gray-300'}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               transition-colors bg-white
             `}
           >
@@ -181,7 +181,7 @@ export default function SignupPage() {
             className={`
               w-full px-4 py-3 rounded-lg border
               ${errors.password ? 'border-red-300' : 'border-gray-300'}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               transition-colors
             `}
             placeholder="••••••••"
@@ -212,7 +212,7 @@ export default function SignupPage() {
             className={`
               w-full px-4 py-3 rounded-lg border
               ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               transition-colors
             `}
             placeholder="••••••••"
@@ -234,7 +234,7 @@ export default function SignupPage() {
             ${
               isSubmitting || loading
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                : 'bg-primary hover:bg-primary-hover active:bg-blue-800'
             }
           `}
         >
@@ -248,7 +248,7 @@ export default function SignupPage() {
           既にアカウントをお持ちですか？{' '}
           <Link
             href="/login"
-            className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+            className="text-primary hover:text-primary-hover font-medium hover:underline"
           >
             ログイン
           </Link>

@@ -117,7 +117,7 @@ export default function AdminMatchEditPage() {
   const getStatusColor = (status: MatchStatus) => {
     switch (status) {
       case 'scheduled':
-        return 'bg-blue-600 hover:bg-blue-700';
+        return 'bg-primary hover:bg-primary-hover';
       case 'in_progress':
         return 'bg-green-600 hover:bg-green-700';
       case 'finished':
@@ -135,7 +135,7 @@ export default function AdminMatchEditPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function AdminMatchEditPage() {
           <p className="text-red-600">{error || '試合が見つかりません'}</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             戻る
           </button>
@@ -165,11 +165,11 @@ export default function AdminMatchEditPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/admin/matches"
-            className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
+            className="text-sm text-primary hover:text-primary-hover mb-2 inline-block"
           >
             ← 試合管理
           </Link>
-          <h1 className="text-2xl font-bold text-blue-900">試合編集</h1>
+          <h1 className="text-2xl font-bold text-navy">試合編集</h1>
         </div>
       </header>
 
@@ -198,7 +198,7 @@ export default function AdminMatchEditPage() {
             <div className="text-center flex-1">
               <Link
                 href={`/teams/${match.home_team.id}`}
-                className="text-lg font-semibold text-blue-600 hover:text-blue-700"
+                className="text-lg font-semibold text-primary hover:text-primary-hover"
               >
                 {match.home_team.name}
               </Link>
@@ -208,7 +208,7 @@ export default function AdminMatchEditPage() {
             <div className="text-center flex-1">
               <Link
                 href={`/teams/${match.away_team.id}`}
-                className="text-lg font-semibold text-blue-600 hover:text-blue-700"
+                className="text-lg font-semibold text-primary hover:text-primary-hover"
               >
                 {match.away_team.name}
               </Link>
@@ -234,7 +234,7 @@ export default function AdminMatchEditPage() {
                 min="0"
                 value={homeScore}
                 onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)}
-                className="w-24 h-24 text-4xl font-bold text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600"
+                className="w-24 h-24 text-4xl font-bold text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -250,7 +250,7 @@ export default function AdminMatchEditPage() {
                 min="0"
                 value={awayScore}
                 onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)}
-                className="w-24 h-24 text-4xl font-bold text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600"
+                className="w-24 h-24 text-4xl font-bold text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function AdminMatchEditPage() {
           <button
             onClick={handleSaveScore}
             disabled={saving}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:bg-gray-400"
+            className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition-colors disabled:bg-gray-400"
           >
             {saving ? '保存中...' : 'スコアを保存'}
           </button>
@@ -277,7 +277,7 @@ export default function AdminMatchEditPage() {
               className={`px-4 py-3 rounded-lg text-white font-medium transition-colors ${
                 selectedStatus === 'scheduled'
                   ? 'bg-blue-800'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-primary hover:bg-primary-hover'
               } disabled:opacity-50`}
             >
               予定
@@ -333,7 +333,7 @@ export default function AdminMatchEditPage() {
           </div>
 
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-900">
+            <p className="text-sm text-navy">
               <strong>現在のステータス:</strong>{' '}
               {selectedStatus === 'scheduled' && '予定'}
               {selectedStatus === 'in_progress' && '進行中'}

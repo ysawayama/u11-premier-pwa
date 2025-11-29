@@ -176,7 +176,7 @@ export default function InviteAcceptPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">招待情報を確認中...</p>
         </div>
       </div>
@@ -192,7 +192,7 @@ export default function InviteAcceptPage() {
           <p className="text-gray-600 mb-6">{error}</p>
           <Link
             href="/"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
             ホームに戻る
           </Link>
@@ -230,7 +230,7 @@ export default function InviteAcceptPage() {
             チームへの招待
           </h1>
           <p className="text-gray-600">
-            <span className="font-semibold text-blue-600">{invitation.team.name}</span>
+            <span className="font-semibold text-primary">{invitation.team.name}</span>
             {' '}に招待されています
           </p>
         </div>
@@ -264,7 +264,7 @@ export default function InviteAcceptPage() {
             <button
               onClick={handleAccept}
               disabled={accepting}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+              className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium disabled:opacity-50"
             >
               {accepting ? '参加処理中...' : 'チームに参加する'}
             </button>
@@ -276,7 +276,7 @@ export default function InviteAcceptPage() {
             </p>
             <Link
               href={`/login?redirect=/invite/${token}`}
-              className="block w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center"
+              className="block w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium text-center"
             >
               ログインして参加
             </Link>

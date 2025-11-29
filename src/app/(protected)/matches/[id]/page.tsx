@@ -71,7 +71,7 @@ export default function MatchDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function MatchDetailPage() {
           <p className="text-red-600">{error || '試合が見つかりません'}</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             戻る
           </button>
@@ -105,12 +105,12 @@ export default function MatchDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/matches"
-            className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
+            className="text-sm text-primary hover:text-primary-hover mb-2 inline-block"
           >
             ← 試合一覧
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-blue-900">試合詳細</h1>
+            <h1 className="text-2xl font-bold text-navy">試合詳細</h1>
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${status.color}`}>
               {status.label}
             </span>
@@ -131,7 +131,7 @@ export default function MatchDetailPage() {
         {/* 試合情報カード */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
           {/* カードヘッダー */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
+          <div className="bg-gradient-to-r from-navy-light to-navy text-white p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm opacity-90">
                 {getMatchTypeLabel(match.match_type)}
@@ -286,7 +286,7 @@ export default function MatchDetailPage() {
               </p>
               <div className="flex items-center justify-center gap-4 text-3xl font-bold text-gray-900">
                 <span>{match.home_team.short_name || match.home_team.name}</span>
-                <span className="text-blue-600">
+                <span className="text-primary">
                   {match.home_score} - {match.away_score}
                 </span>
                 <span>{match.away_team.short_name || match.away_team.name}</span>
@@ -312,13 +312,13 @@ export default function MatchDetailPage() {
         <div className="mt-6 flex gap-4 justify-center">
           <Link
             href={`/teams/${match.home_team.id}`}
-            className="px-6 py-3 bg-white text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+            className="px-6 py-3 bg-white text-primary border-2 border-primary rounded-lg hover:bg-blue-50 font-medium transition-colors"
           >
             {match.home_team.short_name || match.home_team.name}の詳細
           </Link>
           <Link
             href={`/teams/${match.away_team.id}`}
-            className="px-6 py-3 bg-white text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+            className="px-6 py-3 bg-white text-primary border-2 border-primary rounded-lg hover:bg-blue-50 font-medium transition-colors"
           >
             {match.away_team.short_name || match.away_team.name}の詳細
           </Link>

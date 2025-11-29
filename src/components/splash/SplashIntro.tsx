@@ -140,7 +140,7 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
               />
             ) : (
               <div className="w-40 h-40 flex items-center justify-center">
-                <span className="text-5xl font-bold text-blue-900">
+                <span className="text-5xl font-bold text-navy">
                   {myTeam?.short_name?.[0] || myTeam?.name?.[0] || 'U11'}
                 </span>
               </div>
@@ -196,7 +196,7 @@ export default function SplashIntro({ onFinished }: SplashIntroProps) {
                     className="object-contain"
                   />
                 ) : (
-                  <span className="text-xs font-bold text-blue-900">
+                  <span className="text-xs font-bold text-navy">
                     {team.short_name?.[0] || team.name[0]}
                   </span>
                 )}

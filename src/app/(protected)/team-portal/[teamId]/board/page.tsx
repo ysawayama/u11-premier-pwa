@@ -241,7 +241,7 @@ export default function BoardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -252,7 +252,7 @@ export default function BoardPage() {
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">掲示板</h2>
         <button
           onClick={() => { resetPostForm(); setShowPostForm(true); }}
-          className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm min-h-[44px]"
+          className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-xs sm:text-sm min-h-[44px]"
         >
           <span className="hidden sm:inline">投稿する</span>
           <span className="sm:hidden">+ 投稿</span>
@@ -289,7 +289,7 @@ export default function BoardPage() {
                   <div className="ml-4 text-right text-sm text-gray-500">
                     <p>{formatDate(post.created_at)}</p>
                     {post.comment_count > 0 && (
-                      <p className="text-blue-600 mt-1">{post.comment_count}件</p>
+                      <p className="text-primary mt-1">{post.comment_count}件</p>
                     )}
                   </div>
                 </div>
@@ -320,7 +320,7 @@ export default function BoardPage() {
 
               {(isManager || selectedPost.author_id === currentUserId) && (
                 <div className="flex gap-2 mt-4 pt-4 border-t">
-                  <button onClick={() => { openEditForm(selectedPost); setSelectedPost(null); }} className="text-blue-600 text-sm">編集</button>
+                  <button onClick={() => { openEditForm(selectedPost); setSelectedPost(null); }} className="text-primary text-sm">編集</button>
                   <button onClick={() => handleDeletePost(selectedPost.id)} className="text-red-600 text-sm">削除</button>
                 </div>
               )}
@@ -343,9 +343,9 @@ export default function BoardPage() {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="コメントを入力..."
-                    className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   />
-                  <button type="submit" disabled={!newComment.trim()} className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">送信</button>
+                  <button type="submit" disabled={!newComment.trim()} className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50">送信</button>
                 </form>
               </div>
             </div>
@@ -385,7 +385,7 @@ export default function BoardPage() {
                     <span className="text-sm text-gray-700">ピン留め</span>
                   </label>
                 )}
-                <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editingPost ? '更新' : '投稿'}</button>
+                <button type="submit" className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover">{editingPost ? '更新' : '投稿'}</button>
               </form>
             </div>
           </div>

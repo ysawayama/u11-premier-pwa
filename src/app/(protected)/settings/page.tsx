@@ -126,7 +126,7 @@ export default function SettingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -140,12 +140,12 @@ export default function SettingsPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <Link
             href="/dashboard"
-            className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 mb-2 inline-flex items-center min-h-[44px]"
+            className="text-xs sm:text-sm text-primary hover:text-primary-hover mb-2 inline-flex items-center min-h-[44px]"
           >
             <span className="hidden sm:inline">← ダッシュボード</span>
             <span className="sm:hidden">← 戻る</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">通知設定</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-navy">通知設定</h1>
         </div>
       </header>
 
@@ -219,7 +219,7 @@ export default function SettingsPage() {
                     <button
                       onClick={notifications.subscribe}
                       disabled={notifications.permission === 'denied'}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors text-sm disabled:bg-gray-400"
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition-colors text-sm disabled:bg-gray-400"
                     >
                       登録する
                     </button>
@@ -267,7 +267,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => handleToggle('goals_enabled')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    preferences.goals_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                    preferences.goals_enabled ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
                   <span
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => handleToggle('cards_enabled')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    preferences.cards_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                    preferences.cards_enabled ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
                   <span
@@ -309,7 +309,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => handleToggle('match_start_enabled')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    preferences.match_start_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                    preferences.match_start_enabled ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
                   <span
@@ -331,7 +331,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => handleToggle('match_end_enabled')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    preferences.match_end_enabled ? 'bg-blue-600' : 'bg-gray-300'
+                    preferences.match_end_enabled ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
                   <span
@@ -356,7 +356,7 @@ export default function SettingsPage() {
                   onClick={() => handleToggle('team_updates_enabled')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     preferences.team_updates_enabled
-                      ? 'bg-blue-600'
+                      ? 'bg-primary'
                       : 'bg-gray-300'
                   }`}
                 >
@@ -374,7 +374,7 @@ export default function SettingsPage() {
             <button
               onClick={savePreferences}
               disabled={saving}
-              className="w-full mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:bg-gray-400"
+              className="w-full mt-6 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition-colors disabled:bg-gray-400"
             >
               {saving ? '保存中...' : '設定を保存'}
             </button>
@@ -383,7 +383,7 @@ export default function SettingsPage() {
 
         {/* ヒント */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">
+          <h3 className="text-sm font-semibold text-navy mb-2">
             💡 通知について
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">

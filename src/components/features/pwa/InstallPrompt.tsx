@@ -99,7 +99,7 @@ export function InstallPrompt() {
           <div className="flex gap-2">
             <button
               onClick={handleInstallClick}
-              className="bg-white text-blue-900 px-6 py-2 rounded-full font-semibold hover:bg-blue-50 transition"
+              className="bg-white text-navy px-6 py-2 rounded-full font-semibold hover:bg-blue-50 transition"
             >
               インストール
             </button>

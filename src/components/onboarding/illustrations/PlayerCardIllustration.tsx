@@ -30,7 +30,7 @@ export default function PlayerCardIllustration() {
               <div className="h-2.5 w-16 bg-gray-200 rounded mb-1" />
               <div className="h-4 w-24 bg-gray-700 rounded mb-2" />
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-blue-600">10</span>
+                <span className="text-2xl font-black text-primary">10</span>
                 <div className="h-2 w-12 bg-gray-200 rounded" />
               </div>
             </div>

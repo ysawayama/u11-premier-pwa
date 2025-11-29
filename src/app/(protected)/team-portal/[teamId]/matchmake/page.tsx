@@ -20,7 +20,7 @@ export default function MatchmakePage() {
           <li>募集中のチームを検索</li>
           <li>マッチング・日程調整</li>
         </ul>
-        <p className="mt-6 text-sm text-blue-600">Coming Soon...</p>
+        <p className="mt-6 text-sm text-primary">Coming Soon...</p>
       </div>
     </div>
   );

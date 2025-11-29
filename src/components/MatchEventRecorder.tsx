@@ -170,7 +170,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="goal">⚽ ゴール</option>
               <option value="yellow_card">🟨 イエローカード</option>
@@ -190,7 +190,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
               max="90"
               value={eventTime}
               onChange={(e) => setEventTime(parseInt(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
@@ -206,7 +206,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
                 setSelectedPlayerId('');
                 setAssistedById('');
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="home">{match.home_team.name}</option>
               <option value="away">{match.away_team.name}</option>
@@ -221,7 +221,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
             <select
               value={selectedPlayerId}
               onChange={(e) => setSelectedPlayerId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">選手を選択</option>
               {currentPlayers.map((player) => (
@@ -243,7 +243,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
             <select
               value={assistedById}
               onChange={(e) => setAssistedById(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">アシストなし</option>
               {currentPlayers
@@ -267,7 +267,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="詳細情報を入力"
           />
         </div>
@@ -275,7 +275,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
         <button
           onClick={handleAddEvent}
           disabled={saving}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:bg-gray-400"
+          className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition-colors disabled:bg-gray-400"
         >
           {saving ? '記録中...' : 'イベントを記録'}
         </button>
@@ -303,7 +303,7 @@ export default function MatchEventRecorder({ match }: MatchEventRecorderProps) {
                     <span className="text-2xl">{getEventIcon(event.event_type)}</span>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-blue-600">
+                        <span className="font-semibold text-primary">
                           {event.event_time}'
                         </span>
                         <span className="text-sm text-gray-600">

@@ -17,7 +17,7 @@ export default function AppOverviewIllustration() {
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">
+                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-primary">
                   {i}
                 </div>
                 <div className="h-2 flex-1 bg-gray-100 rounded" />
@@ -37,7 +37,7 @@ export default function AppOverviewIllustration() {
           <div className="h-2 w-20 bg-gray-200 rounded mb-3" />
 
           {/* 試合カード風 */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-2.5">
+          <div className="bg-gradient-to-r from-primary-light to-blue-50 rounded-xl p-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <div className="w-7 h-7 rounded-full bg-blue-200" />
