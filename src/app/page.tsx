@@ -1,11 +1,12 @@
-import Link from 'next/link';
+import { Button } from '@/components/ui';
+import { Card, CardTitle, CardContent } from '@/components/ui';
 
 // 動的レンダリングを強制（SSR時のuseContextエラーを回避）
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-light to-blue-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-light to-blue-50">
       <main className="text-center space-y-6 sm:space-y-8 p-4 sm:p-8 max-w-4xl w-full">
         {/* ヘッダー */}
         <div>
@@ -19,41 +20,35 @@ export default function Home() {
 
         {/* メイン機能カード */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <Card variant="elevated" padding="lg" className="text-center">
             <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">📱</div>
-            <h3 className="font-semibold text-navy mb-1 sm:mb-2">デジタル選手証</h3>
+            <CardTitle className="text-base mb-1">デジタル選手証</CardTitle>
             <p className="text-xs sm:text-sm text-gray-600">QRコード付き選手証をスマホで管理</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          </Card>
+          <Card variant="elevated" padding="lg" className="text-center">
             <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">⚽</div>
-            <h3 className="font-semibold text-navy mb-1 sm:mb-2">試合速報</h3>
+            <CardTitle className="text-base mb-1">試合速報</CardTitle>
             <p className="text-xs sm:text-sm text-gray-600">リアルタイムで試合結果を確認</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          </Card>
+          <Card variant="elevated" padding="lg" className="text-center">
             <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🏆</div>
-            <h3 className="font-semibold text-navy mb-1 sm:mb-2">ランキング</h3>
+            <CardTitle className="text-base mb-1">ランキング</CardTitle>
             <p className="text-xs sm:text-sm text-gray-600">チーム・選手の順位を自動集計</p>
-          </div>
+          </Card>
         </div>
 
         {/* CTAボタン */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mt-8 sm:mt-12">
-          <Link
-            href="/login"
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 min-h-[48px] bg-primary hover:bg-primary-hover text-white font-medium rounded-lg shadow-md transition-colors flex items-center justify-center"
-          >
+          <Button href="/login" size="lg" fullWidth className="sm:w-auto">
             ログイン
-          </Link>
-          <Link
-            href="/signup"
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 min-h-[48px] bg-white hover:bg-gray-50 text-primary font-medium rounded-lg shadow-md border-2 border-primary transition-colors flex items-center justify-center"
-          >
+          </Button>
+          <Button href="/signup" variant="outline" size="lg" fullWidth className="sm:w-auto">
             新規登録
-          </Link>
+          </Button>
         </div>
 
         {/* ステータス */}
-        <div className="mt-8 sm:mt-12 p-4 sm:p-6 bg-white rounded-lg shadow-md">
+        <Card variant="elevated" padding="lg" className="mt-8 sm:mt-12">
           <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
             実装完了機能
           </h2>
@@ -65,7 +60,7 @@ export default function Home() {
             <p>✅ ログイン・サインアップ</p>
             <p>✅ 保護されたルート</p>
           </div>
-        </div>
+        </Card>
       </main>
     </div>
   );

@@ -142,7 +142,7 @@ TypeError: Cannot read properties of null (reading 'useContext')
 
 #### デザイン統一
 - [x] 統一感のあるカラーパレット
-- [ ] ボタン・カードコンポーネントの統一
+- [x] ボタン・カードコンポーネントの統一（`src/components/ui/`に共通コンポーネント作成）
 - [ ] アイコン使用の統一
 
 #### 機能追加
