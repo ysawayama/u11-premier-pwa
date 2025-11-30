@@ -1,203 +1,106 @@
 # 開発進捗記録
 
-## 最終更新: 2025-11-29（セッション2完了）
+## 最終更新: 2025-12-01（セッション3完了）
 
 ---
 
-## 📌 引き継ぎサマリー（2025-11-29）
+## 📌 引き継ぎサマリー（2025-12-01）
 
 ### 今回のセッションで完了した作業
 
-1. **スプラッシュ演出改善**
-   - ユーザーの所属チームロゴ → リーグロゴへの遷移アニメーション
-   - `SplashIntro.tsx`で4フェーズ（myTeam → transition → leagueLogo → fadeOut）
-   - セッションストレージで初回のみ表示（リロードでは再表示されない）
+1. **ダッシュボードヘッダー改善**
+   - チームカラー対応（大豆戸FC: 赤 #c41e3a）
+   - 2段構成に変更（上部: 紺色リーグロゴ帯 / 下部: 赤チームカラー帯）
+   - ユーザー情報・ポジション・背番号表示
 
-2. **カラーパレット統一**
-   - `globals.css`に`@theme`ブロックでDesign Systemカラー定義
-   - primary, navy, accent等のセマンティックカラー
+2. **デジタル選手証機能**
+   - `/player-card` ページ新規作成
+   - QRコード付き選手証カード
+   - プレイヤー情報（氏名、チーム、背番号、ポジション、生年月日、リーグ情報）
+   - ダッシュボードヘッダーに「選手証」ボタン追加
 
-3. **共通UIコンポーネント作成**
-   - `src/components/ui/Button.tsx`
-   - `src/components/ui/Card.tsx`
-   - `src/components/ui/Badge.tsx`
+3. **ログアウト機能**
+   - ダッシュボードヘッダーにログアウトボタン追加
+   - デモ用にスプラッシュ画面から再体験可能
 
-4. **ランディングページ（`/`）改善**
-   - ダークテーマ（NEO-FUTURE STADIUM風）に変更
-   - スプラッシュ画面とトンマナを統一
+4. **PWAアイコン修正**
+   - 透明背景（RGBA）→ 白背景（RGB）に修正
+   - iOSでの黒背景問題を解決
 
-5. **マッチメイク機能実装**
-   - `/team-portal/[teamId]/matchmake`
-   - 練習試合の募集作成・一覧・取り消し
+5. **お知らせ機能拡張**
+   - YouTubeリンク自動検出・サムネイル表示
+   - 管理者向けお知らせ投稿ページ（`/admin/announcements`）
 
-6. **ダッシュボード改善**
-   - 「今週の試合」にチーム順位表示（現在○位）
-   - **PC2カラムレイアウト**（lg:以上）
-     - 左カラム: 次の試合、今週の試合、クイックアクセス
-     - 右カラム: 順位表
+6. **スポンサーバナー**
+   - ダッシュボード下部にスポンサーロゴ表示
+   - アイリスオーヤマ、veo、名鉄観光
+
+7. **今週の予定セクション**
+   - 練習スケジュールと試合・大会スケジュールのダミーデータ追加
+   - 以下の全ページに「今週の予定」セクションを追加：
+     - ダッシュボード（`/dashboard`）
+     - チームポータルトップ（`/team-portal/[teamId]`）
+     - マイページ（`/team-portal/[teamId]/my-page`）
+     - スケジュール（`/team-portal/[teamId]/schedule`）
+
+8. **選手証QRコードレイアウト修正**
+   - 重複セクション削除
+   - QRコードサイズ調整（モバイルで切れない対応）
+
+9. **静的ページ作成**
+   - リーグ概要（`/about`）
+   - お問い合わせ（`/contact`）
+   - Coming Soon（`/coming-soon`）
 
 ### 本番環境
 - **URL**: https://u11-premier-pwa.vercel.app
-- **最新コミット**: `89cefc8` - feat: ダッシュボードPC2カラムレイアウト & ランディングページ改善
+- **最新コミット**: `ee7a865` - feat: チームポータルトップページにも今週の予定を追加
 
 ### 開発サーバー
-- ローカルで`pnpm dev`が起動中（バックグラウンド）
+- ローカルで`pnpm dev`が起動中
 - http://localhost:3000
 
 ### 次回やるべきタスク候補
-1. アイコン使用の統一（デザイン統一の残タスク）
-2. PWAホーム画面アイコン背景色の確認（再インストール必要かも）
-3. その他新機能追加の検討
+1. スケジュールデータのDB連携（現在はダミーデータ）
+2. 選手証のQRコード読み取り先ページの実装
+3. 出欠管理機能の実装
+4. プッシュ通知機能の実装
+5. チームチャット機能の拡張
 
 ---
 
-### 完了した機能
+## 完了した機能一覧
 
-#### チームポータル機能
+### ユーザー向け機能
+- [x] ダッシュボード（ホーム画面）
+- [x] デジタル選手証（QRコード付き）
+- [x] 今週の予定表示（練習・試合）
+- [x] 試合一覧・詳細表示
+- [x] リーグ順位表
+- [x] チーム一覧・詳細
+
+### チームポータル機能
+- [x] チーム戦績ページ
 - [x] マイページ（選手専用）
-  - サッカーノート機能（選手-コーチ間コミュニケーション）
-  - サッカーライフログ（成長の思い出アルバム、タイムライン表示）
-- [x] メニュー表示制御
-  - 選手登録者のみマイページ表示
-  - WebマスターとAdmin権限は常時表示（PoC期間中）
-- [x] コーチ向けノートレビューページ (`/notes`)
-- [x] デモ選手データ「U11 太郎」（大豆戸FC所属）
+- [x] サッカーノート機能
+- [x] サッカーライフログ
+- [x] スケジュール管理
+- [x] 選手名簿
+- [x] 掲示板
+- [x] 出欠管理
+- [x] チャット（基本機能）
+- [x] アルバム
+- [x] マッチメイク（練習試合募集）
 
-#### インフラ・設定
-- [x] Next.js 16 + Turbopackビルド設定
-- [x] Protected layout分離（Server/Client Component）
-- [x] ESLint/TypeScriptエラーのビルド時無視設定
-- [x] Vercelデプロイ成功
+### 管理者機能
+- [x] 試合結果入力
+- [x] お知らせ投稿・編集
+- [x] チーム編集
 
-### 既知の問題
-
-#### ローカルビルドエラー
-Next.js 16のプリレンダリングで`useContext`エラーが発生：
-```
-Error occurred prerendering page "/_global-error"
-TypeError: Cannot read properties of null (reading 'useContext')
-```
-**対応状況**: Vercelでは正常にビルド・デプロイ可能
-
----
-
-## 2025-11-28: モバイルレスポンシブ対応完了
-
-### 完了した作業
-
-#### 1. モバイルファースト・レスポンシブ対応
-**目的**: スマートフォンでのレイアウト崩れを修正
-
-**対応済みページ**:
-- [x] ホームページ (`/`)
-- [x] ダッシュボード (`/dashboard`)
-- [x] チームポータルレイアウト (`/team-portal/[teamId]/layout.tsx`)
-- [x] チームポータル戦績 (`/team-portal/[teamId]/page.tsx`)
-- [x] マイページ (`/team-portal/[teamId]/my-page`)
-- [x] 試合結果一覧 (`/matches`)
-- [x] 順位表 (`/standings`)
-- [x] チーム一覧 (`/teams`)
-- [x] スケジュール (`/team-portal/[teamId]/schedule`)
-- [x] 選手名簿 (`/team-portal/[teamId]/roster`)
-- [x] 掲示板 (`/team-portal/[teamId]/board`)
-- [x] 出欠管理 (`/team-portal/[teamId]/attendance`)
-- [x] 設定 (`/settings`)
-
-**適用したレスポンシブパターン**:
-- TailwindCSS `sm:`, `md:`, `lg:` ブレークポイントを活用
-- タッチターゲット最小44pxの確保 (`min-h-[44px]`)
-- モバイル用短縮テキスト（例: `hidden sm:inline` / `sm:hidden`）
-- レスポンシブグリッド（例: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`）
-- 適応型パディング/マージン（例: `p-3 sm:p-6`）
-- テキストサイズの段階的調整（例: `text-xs sm:text-sm`）
-- テキスト省略 (`truncate`)
-
----
-
-## 2025-11-29: UI改善（小学生向けUX）
-
-### 完了した作業
-
-#### 1. フッターナビゲーション日本語化
-**ファイル**: `src/components/navigation/BottomNav.tsx`
-- HOME → ホーム
-- GAMES → 試合
-- LEAGUE → リーグ
-- MEDIA → メディア
-
-#### 2. リーグ順位表のレイアウト修正
-**ファイル**: `src/app/(protected)/league/page.tsx`
-- **問題**: グリッドレイアウトが崩れて縦一列になっていた
-- **解決**: `grid` → `flex` に変更し、固定幅を設定
-- チームロゴ表示対応（`logo_url`がある場合）
-- コンパクトなデザインで10チーム一覧可能
-
-#### 3. 試合一覧にチームロゴ追加
-**ファイル**: `src/app/(protected)/games/page.tsx`
-- LIVE試合カードと通常カードの両方でロゴ表示対応
-- `logo_url`がない場合は頭文字フォールバック
-
-#### 4. 試合詳細ページにチームロゴ追加
-**ファイル**: `src/app/(protected)/matches/[id]/page.tsx`
-- スコアボード上にチームロゴを表示
-- ロゴがない場合は頭文字フォールバック
-
-#### 5. スプラッシュ画面のロゴ背景修正
-**ファイル**: `src/components/splash/SplashIntro.tsx`
-- `bg-white/90` → `bg-white` で完全白背景に
-- 黒っぽいロゴ（大豆戸FCなど）の視認性向上
-
-#### 6. PWAアイコン背景色設定
-**ファイル**: `public/manifest.json`
-- `background_color`をオレンジ（#f97316）に設定
-- ※既存インストール済みアプリには即時反映されない
-
----
-
-## 2025-11-29: スプラッシュ演出改善
-
-### 完了した作業
-
-#### 1. スプラッシュ演出の改善（所属チームロゴ → リーグロゴ遷移）
-**ファイル**: `src/components/splash/SplashIntro.tsx`
-- **新しい演出フロー**:
-  1. `myTeam` - ユーザーの所属チームロゴを中央に大きく表示（例：大豆戸FC）
-  2. `transition` - 所属チームロゴが縮小、10チームのロゴが円形で登場
-  3. `leagueLogo` - リーグロゴが中央に表示、チームロゴ円は回転
-  4. `fadeOut` - フェードアウト
-- **ハイライト機能**: 円形配置で所属チームはオレンジの枠で強調表示
-- **フォールバック**: 未ログイン/所属チームなしの場合はデフォルト表示
-
-#### 2. カラーパレット統一
-**ファイル**: `src/app/globals.css` + 全コンポーネント
-- **Tailwind @theme拡張**でDesign Systemカラーを定義：
-  - `primary` / `primary-hover` / `primary-light` - ボタン・リンク用
-  - `navy` / `navy-light` - ヘッダー・タイトル用
-  - `accent` / `accent-light` - U-11ブランドカラー
-  - `success` / `warning` / `error` - ステータス用
-  - `gold` / `silver` / `bronze` - ランキング用
-- **一括置換**:
-  - `bg-blue-600` → `bg-primary`
-  - `text-blue-900` → `text-navy`
-  - `from-blue-600 to-blue-800` → `from-navy-light to-navy`
-  - `focus:ring-blue-*` → `focus:ring-primary`
-
----
-
-### 未着手・次回タスク候補
-
-#### PWA関連
-- [ ] ホーム画面アイコンの背景色が反映されていない可能性（再インストール必要）
-
-#### デザイン統一
-- [x] 統一感のあるカラーパレット
-- [x] ボタン・カードコンポーネントの統一（`src/components/ui/`に共通コンポーネント作成）
-- [ ] アイコン使用の統一
-
-#### 機能追加
-- [x] チャットページの実装（基本機能は完了）
-- [x] マッチメイク機能の実装（募集作成・一覧・取り消し）
-- [x] アルバム機能の実装（作成・編集・削除、写真追加・表示）
+### PWA機能
+- [x] ホーム画面追加対応
+- [x] スプラッシュ画面
+- [x] オフライン対応（基本）
 
 ---
 
@@ -208,28 +111,35 @@ TypeError: Cannot read properties of null (reading 'useContext')
 src/
 ├── app/
 │   ├── (protected)/
-│   │   ├── layout.tsx          # Server Component（dynamic export）
+│   │   ├── dashboard/page.tsx       # ダッシュボード
+│   │   ├── player-card/page.tsx     # デジタル選手証
+│   │   ├── games/page.tsx           # 試合一覧
+│   │   ├── league/page.tsx          # 順位表
 │   │   ├── admin/
-│   │   │   └── layout.tsx      # Admin用dynamic layout
+│   │   │   ├── matches/             # 試合管理
+│   │   │   └── announcements/       # お知らせ管理
 │   │   └── team-portal/
 │   │       └── [teamId]/
-│   │           ├── my-page/    # 選手マイページ
-│   │           └── notes/      # コーチノートレビュー
-│   └── (auth)/
-│       └── layout.tsx          # Auth用dynamic layout
+│   │           ├── page.tsx         # チーム戦績
+│   │           ├── my-page/         # マイページ
+│   │           ├── schedule/        # スケジュール
+│   │           ├── roster/          # 選手名簿
+│   │           ├── board/           # 掲示板
+│   │           ├── attendance/      # 出欠
+│   │           ├── chat/            # チャット
+│   │           ├── album/           # アルバム
+│   │           └── matchmake/       # マッチメイク
+│   ├── about/page.tsx               # リーグ概要
+│   ├── contact/page.tsx             # お問い合わせ
+│   └── coming-soon/page.tsx         # Coming Soon
 ├── components/
-│   └── layouts/
-│       ├── ClientLayout.tsx    # PWAインストールプロンプト
-│       └── ProtectedLayoutClient.tsx  # 認証チェックClient Component
+│   ├── navigation/BottomNav.tsx     # フッターナビ
+│   ├── splash/SplashIntro.tsx       # スプラッシュ
+│   └── ui/                          # 共通UIコンポーネント
 └── lib/
-    └── api/
-        ├── soccerNotes.ts      # サッカーノートAPI
-        └── soccerLifeLogs.ts   # ライフログAPI
+    ├── supabase/                    # Supabase設定
+    └── api/                         # API関数
 ```
-
-### 設定ファイル
-- `next.config.mjs`: Turbopack設定、ESLint/TS無視設定
-- `tsconfig.json`: TypeScript設定
 
 ---
 
@@ -239,6 +149,7 @@ src/
 - 権限: 全ページ閲覧可能
 
 ## デモ選手データ
-- 名前: U11 太郎
+- 名前: 澤山雄一（U11 太郎から変更）
 - チーム: 大豆戸FC
-- user_id: c8fa3405-71b8-4ca6-add1-47dbde9766a5（demo-masterアカウント）
+- 背番号: #10
+- ポジション: MF
