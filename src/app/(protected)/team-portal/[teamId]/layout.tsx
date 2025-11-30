@@ -7,6 +7,25 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { getTeamById } from '@/lib/api/teams';
 import type { TeamWithPrefecture } from '@/types/database';
+import {
+  BarChart3,
+  User,
+  Calendar,
+  ClipboardList,
+  Hand,
+  Users,
+  FileText,
+  Camera,
+  MessageCircle,
+  Handshake,
+  Settings,
+  Lock,
+  Home,
+  Menu,
+  X,
+  ChevronRight,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 /**
  * チームポータル用レイアウト
@@ -17,24 +36,24 @@ import type { TeamWithPrefecture } from '@/types/database';
 type MenuItem = {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   requiresPlayer?: boolean; // 選手登録が必要なメニュー
   adminOnly?: boolean; // 管理者のみ
   coachOnly?: boolean; // コーチ/マネージャーのみ
 };
 
 const baseMenuItems: MenuItem[] = [
-  { href: '', label: '戦績', icon: '📊' },
-  { href: '/my-page', label: 'マイページ', icon: '👤', requiresPlayer: true },
-  { href: '/schedule', label: 'スケジュール', icon: '📅' },
-  { href: '/board', label: '掲示板', icon: '📋' },
-  { href: '/attendance', label: '出欠管理', icon: '✋' },
-  { href: '/roster', label: '選手名簿', icon: '👥' },
-  { href: '/notes', label: 'ノートレビュー', icon: '📝', coachOnly: true },
-  { href: '/album', label: 'アルバム', icon: '📷' },
-  { href: '/chat', label: 'チャット', icon: '💬' },
-  { href: '/matchmake', label: 'マッチメイク', icon: '🤝' },
-  { href: '/settings', label: '設定', icon: '⚙️' },
+  { href: '', label: '戦績', icon: BarChart3 },
+  { href: '/my-page', label: 'マイページ', icon: User, requiresPlayer: true },
+  { href: '/schedule', label: 'スケジュール', icon: Calendar },
+  { href: '/board', label: '掲示板', icon: ClipboardList },
+  { href: '/attendance', label: '出欠管理', icon: Hand },
+  { href: '/roster', label: '選手名簿', icon: Users },
+  { href: '/notes', label: 'ノートレビュー', icon: FileText, coachOnly: true },
+  { href: '/album', label: 'アルバム', icon: Camera },
+  { href: '/chat', label: 'チャット', icon: MessageCircle },
+  { href: '/matchmake', label: 'マッチメイク', icon: Handshake },
+  { href: '/settings', label: '設定', icon: Settings },
 ];
 
 export default function TeamPortalLayout({
@@ -194,7 +213,9 @@ export default function TeamPortalLayout({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-8">
-          <div className="text-6xl mb-6">🔒</div>
+          <div className="flex justify-center mb-6">
+            <Lock size={64} className="text-gray-400" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">アクセス権限がありません</h1>
           <p className="text-gray-600 mb-6">
             このチームポータルは、チームメンバーのみがアクセスできます。
@@ -231,9 +252,7 @@ export default function TeamPortalLayout({
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 rounded-md hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Menu size={24} />
               </button>
 
               {/* チームロゴ・名前（クリックでポータルトップへ） */}
@@ -260,10 +279,10 @@ export default function TeamPortalLayout({
 
             <Link
               href="/dashboard"
-              className="text-xs sm:text-sm text-primary hover:text-primary-hover min-h-[44px] flex items-center px-2"
+              className="text-xs sm:text-sm text-primary hover:text-primary-hover min-h-[44px] flex items-center px-2 gap-1"
             >
+              <Home size={18} className="sm:hidden" />
               <span className="hidden sm:inline">ダッシュボード</span>
-              <span className="sm:hidden">🏠</span>
             </Link>
           </div>
         </div>
@@ -274,21 +293,24 @@ export default function TeamPortalLayout({
         <aside className="hidden lg:block w-64 bg-white shadow-sm min-h-[calc(100vh-64px)] sticky top-16">
           <nav className="p-4">
             <ul className="space-y-1">
-              {menuItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={`${basePath}${item.href}`}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] ${
-                      isActive(item.href)
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={`${basePath}${item.href}`}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] ${
+                        isActive(item.href)
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Icon size={20} />
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         </aside>
@@ -308,30 +330,31 @@ export default function TeamPortalLayout({
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 rounded-md hover:bg-gray-100"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <X size={20} />
                   </button>
                 </div>
               </div>
               <nav className="p-4">
                 <ul className="space-y-1">
-                  {menuItems.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={`${basePath}${item.href}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] ${
-                          isActive(item.href)
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="text-xl">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </Link>
-                    </li>
-                  ))}
+                  {menuItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={`${basePath}${item.href}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] ${
+                            isActive(item.href)
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon size={20} />
+                          <span>{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </nav>
             </aside>
@@ -349,11 +372,12 @@ export default function TeamPortalLayout({
               >
                 トップ
               </Link>
-              <svg className="w-4 h-4 mx-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <ChevronRight size={16} className="mx-2 text-gray-400" />
               <span className="text-gray-900 font-medium flex items-center gap-1.5">
-                <span>{currentPage.icon}</span>
+                {(() => {
+                  const Icon = currentPage.icon;
+                  return <Icon size={16} />;
+                })()}
                 {currentPage.label}
               </span>
             </nav>

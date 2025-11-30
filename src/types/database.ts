@@ -802,3 +802,19 @@ export interface SoccerNoteWithCoach extends SoccerNote {
 export interface PlayerAlbumWithMedia extends PlayerAlbum {
   media: PlayerAlbumMedia[];
 }
+
+// ============================================
+// Announcements (お知らせ)
+// ============================================
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  published_at: string;
+  image_url: string | null;
+  is_published: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}

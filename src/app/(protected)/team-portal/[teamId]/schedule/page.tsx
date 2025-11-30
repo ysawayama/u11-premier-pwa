@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 type EventType = 'match' | 'practice' | 'meeting' | 'event' | 'other';
@@ -636,18 +637,14 @@ export default function SchedulePage() {
             onClick={() => changeMonth(-1)}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ChevronLeft size={20} />
           </button>
           <h3 className="text-lg font-semibold">{monthLabel}</h3>
           <button
             onClick={() => changeMonth(1)}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRight size={20} />
           </button>
         </div>
       </div>
@@ -710,9 +707,7 @@ export default function SchedulePage() {
                         className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-blue-100 rounded opacity-0 group-hover:opacity-100 sm:opacity-100"
                         title="予定を追加"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
+                        <Plus size={16} />
                       </button>
                     )}
                   </div>
@@ -770,9 +765,7 @@ export default function SchedulePage() {
               onClick={() => setSelectedDate(null)}
               className="text-gray-400 hover:text-gray-600"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X size={20} />
             </button>
           </div>
           {selectedDateItems.length === 0 ? (
@@ -847,9 +840,7 @@ export default function SchedulePage() {
                   {editingSchedule ? '予定を編集' : '予定を追加'}
                 </h3>
                 <button onClick={() => { setShowForm(false); resetForm(); }} className="text-gray-400 hover:text-gray-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X size={24} />
                 </button>
               </div>
 
