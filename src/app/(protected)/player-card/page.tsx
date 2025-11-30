@@ -133,44 +133,45 @@ export default function PlayerCardPage() {
           </div>
 
           {/* メイン情報 */}
-          <div className="p-5">
-            <div className="flex gap-5">
+          <div className="p-4">
+            {/* 上段: 顔写真 + 選手情報 */}
+            <div className="flex gap-4">
               {/* 顔写真 */}
               <div className="flex-shrink-0">
-                <div className="w-28 h-36 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center">
+                <div className="w-24 h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center">
                   {myPlayer?.photo_url ? (
                     <Image
                       src={myPlayer.photo_url}
                       alt={myPlayer.name}
-                      width={112}
-                      height={144}
+                      width={96}
+                      height={128}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="flex flex-col items-center text-gray-400">
-                      <User size={48} />
-                      <span className="text-xs mt-1">写真なし</span>
+                      <User size={40} />
+                      <span className="text-[10px] mt-1">写真なし</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* 選手情報 */}
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 min-w-0 space-y-1.5">
                 {/* 氏名 */}
                 <div>
-                  <p className="text-[10px] text-gray-500 mb-0.5">氏名</p>
-                  <p className="text-lg font-bold text-gray-900">
+                  <p className="text-[10px] text-gray-500">氏名</p>
+                  <p className="text-base font-bold text-gray-900 truncate">
                     {myPlayer?.name || user?.full_name || 'ゲスト'}
                   </p>
                 </div>
 
                 {/* チーム名 */}
                 <div>
-                  <p className="text-[10px] text-gray-500 mb-0.5">所属チーム</p>
-                  <div className="flex items-center gap-2">
+                  <p className="text-[10px] text-gray-500">所属チーム</p>
+                  <div className="flex items-center gap-1.5">
                     {myTeam?.logo_url && (
-                      <div className="w-5 h-5 relative">
+                      <div className="w-4 h-4 relative flex-shrink-0">
                         <Image
                           src={myTeam.logo_url}
                           alt={myTeam.name}
@@ -179,67 +180,69 @@ export default function PlayerCardPage() {
                         />
                       </div>
                     )}
-                    <p className="text-sm font-medium text-gray-900">{myTeam?.name || '-'}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{myTeam?.name || '-'}</p>
                   </div>
                 </div>
 
                 {/* 背番号・ポジション */}
                 <div className="flex gap-4">
                   <div>
-                    <p className="text-[10px] text-gray-500 mb-0.5">背番号</p>
+                    <p className="text-[10px] text-gray-500">背番号</p>
                     <p className="text-xl font-bold text-primary">
                       {myPlayer?.uniform_number ? `#${myPlayer.uniform_number}` : '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-gray-500 mb-0.5">ポジション</p>
+                    <p className="text-[10px] text-gray-500">ポジション</p>
                     <p className="text-lg font-bold text-gray-900">
                       {getPositionLabel(myPlayer?.position || null)}
                     </p>
                   </div>
                 </div>
               </div>
-
-              {/* QRコード */}
-              <div className="flex-shrink-0 flex flex-col items-center">
-                <div className="bg-white p-2 rounded-lg border border-gray-200">
-                  <QRCodeSVG
-                    value={`https://pl11.jp/player/${myPlayer?.id || 'demo'}`}
-                    size={80}
-                    level="M"
-                    includeMargin={false}
-                  />
-                </div>
-                <p className="text-[8px] text-gray-400 mt-1 text-center">選手情報</p>
-              </div>
             </div>
 
-            {/* 追加情報 */}
-            <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[10px] text-gray-500 mb-0.5">生年月日</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {formatBirthDate(myPlayer?.birth_date || null)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 mb-0.5">登録シーズン</p>
-                <p className="text-sm font-medium text-gray-900">{getCurrentSeason()}年度</p>
-              </div>
-            </div>
-
-            {/* リーグ情報 */}
+            {/* 生年月日・登録シーズン */}
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-gray-500 mb-0.5">所属リーグ</p>
-                  <p className="text-sm font-medium text-gray-900">神奈川2部A</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-gray-500 mb-0.5">登録ID</p>
-                  <p className="text-xs font-mono text-gray-600">
-                    {myPlayer?.id?.substring(0, 8).toUpperCase() || 'XXXXXXXX'}
+                  <p className="text-[10px] text-gray-500 mb-0.5">生年月日</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatBirthDate(myPlayer?.birth_date || null)}
                   </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-0.5">登録シーズン</p>
+                  <p className="text-sm font-medium text-gray-900">{getCurrentSeason()}年度</p>
+                </div>
+              </div>
+            </div>
+
+            {/* リーグ情報 + QRコード */}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="mb-2">
+                    <p className="text-[10px] text-gray-500 mb-0.5">所属リーグ</p>
+                    <p className="text-sm font-medium text-gray-900">神奈川2部A</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 mb-0.5">登録ID</p>
+                    <p className="text-xs font-mono text-gray-600">
+                      {myPlayer?.id?.substring(0, 8).toUpperCase() || 'XXXXXXXX'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <div className="bg-white p-1.5 rounded-lg border border-gray-200 shadow-sm">
+                    <QRCodeSVG
+                      value={`https://pl11.jp/player/${myPlayer?.id || 'demo'}`}
+                      size={56}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  </div>
+                  <p className="text-[8px] text-gray-400 mt-1">選手情報</p>
                 </div>
               </div>
             </div>

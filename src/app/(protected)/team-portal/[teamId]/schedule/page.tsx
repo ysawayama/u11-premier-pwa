@@ -3,8 +3,144 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, MapPin, Calendar } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+
+// 練習スケジュール
+type PracticeScheduleData = {
+  dayOfWeek: number; // 0=日, 1=月, ... 6=土
+  startTime: string;
+  endTime: string;
+  location: string;
+};
+
+// チームイベント（試合以外）
+type TeamEventData = {
+  id: string;
+  title: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  location: string;
+  address: string;
+  type: 'match' | 'practice' | 'tournament';
+};
+
+// 練習スケジュール定義
+const practiceSchedulesData: PracticeScheduleData[] = [
+  { dayOfWeek: 1, startTime: '16:30', endTime: '18:00', location: 'しんよこFP' },
+  { dayOfWeek: 1, startTime: '17:30', endTime: '18:30', location: 'しんよこFP' },
+  { dayOfWeek: 2, startTime: '17:00', endTime: '18:30', location: '大豆戸小学校' },
+  { dayOfWeek: 6, startTime: '12:00', endTime: '13:30', location: '大豆戸小学校' },
+];
+
+// チームイベント（試合・大会）
+const teamEventsData: TeamEventData[] = [
+  {
+    id: 'event1',
+    title: 'U10湘南 ルベントカップ',
+    date: new Date('2025-12-07'),
+    startTime: '9:00',
+    endTime: '17:00',
+    location: '大磯運動公園',
+    address: '神奈川県中郡大磯町国府本郷２１２６',
+    type: 'tournament',
+  },
+  {
+    id: 'event2',
+    title: 'U10ルーキーリーグ',
+    date: new Date('2025-12-14'),
+    startTime: '14:30',
+    endTime: '16:30',
+    location: '横浜市立大豆戸小学校',
+    address: '神奈川県横浜市港北区大豆戸町７５９',
+    type: 'match',
+  },
+  {
+    id: 'event3',
+    title: 'u10.12TM vs伊丹FC',
+    date: new Date('2025-12-28'),
+    startTime: '9:00',
+    endTime: '17:00',
+    location: '横浜市立大豆戸小学校',
+    address: '神奈川県横浜市港北区大豆戸町７５９',
+    type: 'match',
+  },
+];
+
+// 曜日名を取得
+const weekdayNamesConst = ['日', '月', '火', '水', '木', '金', '土'];
+
+// 次の練習日を計算
+function getNextPractice(schedules: PracticeScheduleData[]): { date: Date; schedule: PracticeScheduleData } | null {
+  if (schedules.length === 0) return null;
+
+  const now = new Date();
+  const currentDay = now.getDay();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+
+  let closestDays = Infinity;
+  let closestSchedule: PracticeScheduleData | null = null;
+
+  for (const schedule of schedules) {
+    let daysUntil = schedule.dayOfWeek - currentDay;
+
+    if (daysUntil === 0) {
+      const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
+      if (currentHour > startHour || (currentHour === startHour && currentMinute >= startMinute)) {
+        daysUntil = 7;
+      }
+    } else if (daysUntil < 0) {
+      daysUntil += 7;
+    }
+
+    if (daysUntil < closestDays) {
+      closestDays = daysUntil;
+      closestSchedule = schedule;
+    }
+  }
+
+  if (!closestSchedule) return null;
+
+  const nextDate = new Date(now);
+  nextDate.setDate(now.getDate() + closestDays);
+  nextDate.setHours(0, 0, 0, 0);
+
+  return { date: nextDate, schedule: closestSchedule };
+}
+
+// 今週のイベントを取得
+function getThisWeekEvents(events: TeamEventData[]): TeamEventData[] {
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+  return events.filter(event => {
+    const eventDate = new Date(event.date);
+    return eventDate >= startOfWeek && eventDate < endOfWeek;
+  }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+// 今月のイベントを取得
+function getThisMonthEvents(events: TeamEventData[]): TeamEventData[] {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  return events.filter(event => {
+    const eventDate = new Date(event.date);
+    return eventDate >= startOfMonth && eventDate <= endOfMonth;
+  }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+// 日付をフォーマット
+function formatEventDateHelper(date: Date): string {
+  return `${date.getMonth() + 1}/${date.getDate()}(${weekdayNamesConst[date.getDay()]})`;
+}
 
 type EventType = 'match' | 'practice' | 'meeting' | 'event' | 'other';
 type ViewMode = 'list' | 'calendar';
@@ -628,6 +764,118 @@ export default function SchedulePage() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* 今週の予定サマリー */}
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Calendar size={18} className="text-primary" />
+          今週の予定
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {/* 練習カード */}
+          <div className="p-3 sm:p-4 rounded-lg bg-green-50 border-l-4 border-green-500">
+            <h4 className="text-xs font-medium text-gray-500 mb-2">次の練習</h4>
+            {(() => {
+              const nextPractice = getNextPractice(practiceSchedulesData);
+              if (!nextPractice) {
+                return <p className="text-sm text-gray-500">予定なし</p>;
+              }
+              return (
+                <>
+                  <p className="text-base font-bold text-gray-900">
+                    {formatEventDateHelper(nextPractice.date)}
+                  </p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {nextPractice.schedule.startTime} - {nextPractice.schedule.endTime}
+                  </p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <MapPin size={12} className="text-gray-400" />
+                    <p className="text-xs text-gray-500">
+                      {nextPractice.schedule.location}
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+          {/* 試合カード */}
+          <div className="p-3 sm:p-4 rounded-lg bg-red-50 border-l-4 border-red-500">
+            <h4 className="text-xs font-medium text-gray-500 mb-2">今週の試合</h4>
+            {(() => {
+              const weekEvents = getThisWeekEvents(teamEventsData);
+              if (weekEvents.length === 0) {
+                return <p className="text-sm text-gray-500">予定なし</p>;
+              }
+              const event = weekEvents[0];
+              return (
+                <>
+                  <p className="text-base font-bold text-gray-900">
+                    {formatEventDateHelper(event.date)}
+                  </p>
+                  <p className="text-xs font-medium text-gray-700 truncate">
+                    {event.title}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {event.startTime} - {event.endTime}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <MapPin size={12} className="text-gray-400" />
+                    <p className="text-xs text-gray-500 truncate">
+                      {event.location}
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* 今月の試合・大会一覧 */}
+        {(() => {
+          const monthEvents = getThisMonthEvents(teamEventsData);
+          if (monthEvents.length === 0) return null;
+          return (
+            <div className="pt-4 border-t border-gray-100">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                {new Date().getMonth() + 1}月の試合・大会
+              </h4>
+              <div className="space-y-2">
+                {monthEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-12 text-center">
+                      <span className="text-sm font-bold text-primary">
+                        {event.date.getMonth() + 1}/{event.date.getDate()}
+                      </span>
+                      <span className="block text-[10px] text-gray-500">
+                        ({weekdayNamesConst[event.date.getDay()]})
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {event.location}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                      event.type === 'tournament'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {event.type === 'tournament' ? '大会' : '試合'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 月選択 */}
