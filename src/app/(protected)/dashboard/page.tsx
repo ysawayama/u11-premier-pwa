@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Settings, ChevronDown, ChevronUp, ExternalLink, ChevronLeft, ChevronRight, Megaphone, Users, User, Trophy, BarChart3, Info, Globe, Award, BookOpen, Mail, Calendar, MapPin, IdCard, LogOut } from 'lucide-react';
+import { Settings, ChevronDown, ChevronUp, ExternalLink, ChevronLeft, ChevronRight, Megaphone, Users, User, Trophy, BarChart3, Info, Globe, Award, BookOpen, Mail, Calendar, MapPin, IdCard, LogOut, ClipboardList } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { createClient } from '@/lib/supabase/client';
@@ -999,6 +999,13 @@ export default function DashboardPage() {
                   </div>
                 </Link>
               )}
+              <Link href="/admin/match-operations" className="card p-4 flex items-center gap-3" style={{ borderLeft: '4px solid var(--color-primary)' }}>
+                <ClipboardList size={24} className="text-primary" />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>試合運営</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>メンバー・記録</p>
+                </div>
+              </Link>
             </div>
           </section>
         )}
