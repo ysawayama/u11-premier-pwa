@@ -16,8 +16,8 @@ export function ProtectedLayoutClient({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, initialized, initializeAuth } = useAuthStore();
-  const initRef = useRef(false);
+  const { user, loading, checkSession } = useAuthStore();
+  const checkedRef = useRef(false);
 
   // ボトムナビを表示しないページ（チームポータルの詳細ページなど）
   const hideBottomNav = pathname.includes('/team-portal/') || pathname.includes('/admin');
@@ -26,22 +26,22 @@ export function ProtectedLayoutClient({
   const useCustomLayout = pathname === '/dashboard';
 
   useEffect(() => {
-    // 認証を初期化（一度だけ実行）
-    if (!initRef.current) {
-      initRef.current = true;
-      initializeAuth();
+    // セッションをチェック（一度だけ実行）
+    if (!checkedRef.current) {
+      checkedRef.current = true;
+      checkSession();
     }
-  }, [initializeAuth]);
+  }, [checkSession]);
 
   useEffect(() => {
-    // 初期化完了後、未ログインの場合はログインページへ
-    if (initialized && !loading && !user) {
+    // ローディング完了後、未ログインの場合はログインページへ
+    if (!loading && !user && checkedRef.current) {
       router.push('/login');
     }
-  }, [user, loading, initialized, router]);
+  }, [user, loading, router]);
 
-  // 初期化中またはローディング中
-  if (!initialized || loading) {
+  // ローディング中のみ表示（initializedは待たない）
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
