@@ -7,10 +7,8 @@ import { createServerClient } from '@supabase/ssr';
  * 保護されたルートへのアクセスをチェック
  */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   });
 
   const supabase = createServerClient(
@@ -22,27 +20,27 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          response = NextResponse.next({
+          supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           );
         },
       },
     }
   );
 
-  // セッションを取得
+  // getUser()を使用（getSession()よりセキュア）
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // 認証が必要なルートの定義
-  const protectedRoutes = ['/dashboard', '/profile', '/players', '/matches', '/rankings'];
+  const protectedRoutes = ['/dashboard', '/profile', '/players', '/matches', '/rankings', '/team-portal', '/admin', '/games', '/league', '/stats', '/player-card'];
   const authRoutes = ['/login', '/signup'];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -53,18 +51,18 @@ export async function middleware(request: NextRequest) {
   );
 
   // 認証が必要なページで未ログインの場合はログインページへ
-  if (isProtectedRoute && !session) {
+  if (isProtectedRoute && !user) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
   // ログイン済みでログイン/サインアップページにアクセスした場合はダッシュボードへ
-  if (isAuthRoute && session) {
+  if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
