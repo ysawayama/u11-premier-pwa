@@ -30,7 +30,7 @@ export const useAuthStore = create<AuthStore>()(
   // 初期状態
   user: null,
   session: null,
-  loading: true, // 初期はtrue（セッションチェック中）
+  loading: false,
   initialized: false,
   error: null,
 
