@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { createClient } from '@/lib/supabase/client';
 
 // framer-motionを含むコンポーネントはクライアントサイドのみでロード
 const SplashIntro = dynamic(
@@ -35,9 +36,26 @@ export function ClientLayout() {
   }, []);
 
   // スプラッシュ終了時の遷移ロジック
-  const handleSplashFinished = useCallback(() => {
-    // 既にオンボーディングやログインページにいる場合はそのまま
-    if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/login') || pathname?.startsWith('/signup')) {
+  const handleSplashFinished = useCallback(async () => {
+    // 既にダッシュボードや保護ページにいる場合はそのまま
+    if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/team-portal') || pathname?.startsWith('/admin')) {
+      return;
+    }
+
+    // ログイン済みかチェック
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      // ログイン済み: ダッシュボードへ
+      console.log('[ClientLayout] User logged in, redirecting to dashboard');
+      router.replace('/dashboard');
+      return;
+    }
+
+    // 未ログインの場合
+    // 既にログインページにいる場合はそのまま
+    if (pathname?.startsWith('/login') || pathname?.startsWith('/signup') || pathname?.startsWith('/onboarding')) {
       return;
     }
 
@@ -50,7 +68,7 @@ export function ClientLayout() {
       // 初回ユーザー: オンボーディングへ
       router.replace('/onboarding');
     }
-    // 既存ユーザー: 現在のページにとどまる（または必要に応じてホームへ）
+    // 既存ユーザー: 現在のページにとどまる（トップページ）
   }, [router, pathname]);
 
   // SSR時は何もレンダリングしない
