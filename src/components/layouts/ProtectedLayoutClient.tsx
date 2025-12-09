@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { BottomNav } from '@/components/navigation/BottomNav';
@@ -16,7 +16,8 @@ export function ProtectedLayoutClient({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, checkSession } = useAuthStore();
+  const { user, loading, initialized, initializeAuth } = useAuthStore();
+  const initRef = useRef(false);
 
   // ボトムナビを表示しないページ（チームポータルの詳細ページなど）
   const hideBottomNav = pathname.includes('/team-portal/') || pathname.includes('/admin');
@@ -25,19 +26,22 @@ export function ProtectedLayoutClient({
   const useCustomLayout = pathname === '/dashboard';
 
   useEffect(() => {
-    // セッションをチェック
-    checkSession();
-  }, [checkSession]);
+    // 認証を初期化（一度だけ実行）
+    if (!initRef.current) {
+      initRef.current = true;
+      initializeAuth();
+    }
+  }, [initializeAuth]);
 
   useEffect(() => {
-    // ローディング完了後、未ログインの場合はログインページへ
-    if (!loading && !user) {
+    // 初期化完了後、未ログインの場合はログインページへ
+    if (initialized && !loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, initialized, router]);
 
-  // ローディング中
-  if (loading) {
+  // 初期化中またはローディング中
+  if (!initialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

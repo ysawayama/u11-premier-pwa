@@ -1,15 +1,18 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { createClient } from '@/lib/supabase/client';
 import type { User, AuthError, LoginFormData, SignupFormData } from '@/types/auth';
 
 /**
  * 認証状態管理ストア（Zustand）
+ * persistミドルウェアでlocalStorageに永続化
  */
 interface AuthStore {
   // 状態
   user: User | null;
   session: any | null;
   loading: boolean;
+  initialized: boolean; // 初期化完了フラグ
   error: AuthError | null;
 
   // アクション
@@ -18,13 +21,17 @@ interface AuthStore {
   logout: () => Promise<void>;
   clearError: () => void;
   checkSession: () => Promise<void>;
+  initializeAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
   // 初期状態
   user: null,
   session: null,
-  loading: false,
+  loading: true, // 初期はtrue（セッションチェック中）
+  initialized: false,
   error: null,
 
   // ログイン
@@ -151,6 +158,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   // セッションをチェック（ページ読み込み時など）
   checkSession: async () => {
+    const { initialized } = get();
+
+    // 既に初期化済みの場合はスキップ
+    if (initialized) {
+      return;
+    }
+
     set({ loading: true });
 
     try {
@@ -185,12 +199,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           user: profileData,
           session,
           loading: false,
+          initialized: true,
         });
       } else {
         set({
           user: null,
           session: null,
           loading: false,
+          initialized: true,
         });
       }
     } catch (error: any) {
@@ -199,7 +215,54 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         user: null,
         session: null,
         loading: false,
+        initialized: true,
       });
     }
   },
-}));
+
+  // アプリ起動時の認証初期化（onAuthStateChangeを設定）
+  initializeAuth: async () => {
+    const supabase = createClient();
+
+    // セッション変更を監視
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (session?.user) {
+          const { data: profileData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          set({
+            user: profileData,
+            session,
+            loading: false,
+            initialized: true,
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        set({
+          user: null,
+          session: null,
+          loading: false,
+          initialized: true,
+        });
+      }
+    });
+
+    // 初回セッションチェック
+    await get().checkSession();
+  },
+    }),
+    {
+      name: 'auth-storage', // localStorage のキー名
+      partialize: (state) => ({
+        user: state.user,
+        // sessionは保存しない（Supabaseが管理）
+      }),
+    }
+  )
+);
