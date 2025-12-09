@@ -156,16 +156,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const supabase = createClient();
 
-      // まずgetSessionを試す
-      let { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // getSessionを試す
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      // セッションがない場合、refreshSessionを試みる
-      if (!session && !sessionError) {
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-        if (!refreshError && refreshData.session) {
-          session = refreshData.session;
-        }
-      }
+      console.log('[checkSession] getSession result:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        error: sessionError?.message
+      });
 
       if (sessionError) throw sessionError;
 
@@ -181,12 +179,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           console.warn('プロフィール情報の取得に失敗:', profileError);
         }
 
+        console.log('[checkSession] User found:', profileData?.email);
+
         set({
           user: profileData,
           session,
           loading: false,
         });
       } else {
+        console.log('[checkSession] No session found');
         set({
           user: null,
           session: null,

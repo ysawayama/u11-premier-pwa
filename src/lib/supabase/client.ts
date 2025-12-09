@@ -1,9 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr';
 
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
+
 /**
- * Supabaseクライアント（ブラウザ用）
+ * Supabaseクライアント（ブラウザ用）- シングルトン
  * クライアントコンポーネントで使用
- * セッションは自動的にlocalStorageに永続化される
  */
 export const createClient = () => {
   // SSR時には null を返す（クライアントサイドでのみ使用）
@@ -11,15 +12,15 @@ export const createClient = () => {
     return null as any;
   }
 
-  return createBrowserClient(
+  // シングルトン: 既存のクライアントがあれば再利用
+  if (supabaseClient) {
+    return supabaseClient;
+  }
+
+  supabaseClient = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  return supabaseClient;
 };
