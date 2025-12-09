@@ -156,7 +156,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const supabase = createClient();
 
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // まずgetSessionを試す
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      // セッションがない場合、refreshSessionを試みる
+      if (!session && !sessionError) {
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        if (!refreshError && refreshData.session) {
+          session = refreshData.session;
+        }
+      }
 
       if (sessionError) throw sessionError;
 

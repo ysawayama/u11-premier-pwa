@@ -172,7 +172,7 @@ function formatEventDate(date: Date): string {
 }
 
 export default function DashboardPage() {
-  const { user, clearUser } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const router = useRouter();
   const [myTeam, setMyTeam] = useState<Team | null>(null);
   const [myPlayer, setMyPlayer] = useState<Player | null>(null);
@@ -190,9 +190,7 @@ export default function DashboardPage() {
 
   // ログアウト処理
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    clearUser();
+    await logout();
     // スプラッシュから表示されるようにルートにリダイレクト
     router.push('/');
   };
