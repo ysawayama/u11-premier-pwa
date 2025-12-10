@@ -14,7 +14,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'home', label: 'ホーム', href: '/dashboard', icon: Home },
-  { id: 'games', label: '試合', href: '/games', icon: Trophy },
+  { id: 'matches', label: '試合', href: '/matches', icon: Trophy },
   { id: 'league', label: 'リーグ', href: '/league', icon: Award },
   { id: 'media', label: 'メディア', href: '/media', icon: Play },
 ];

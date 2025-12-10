@@ -39,16 +39,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // デバッグログ（本番環境でも確認可能）
-  console.log('[Middleware]', {
-    path: request.nextUrl.pathname,
-    hasUser: !!user,
-    userEmail: user?.email,
-  });
-
   // 認証が必要なルートの定義
-  // 注意: /matches は一時的に除外してテスト中
-  const protectedRoutes = ['/dashboard', '/profile', '/players', '/rankings', '/team-portal', '/admin', '/games', '/league', '/stats', '/player-card'];
+  const protectedRoutes = ['/dashboard', '/profile', '/players', '/matches', '/rankings', '/team-portal', '/admin', '/games', '/league', '/stats', '/player-card'];
   const authRoutes = ['/login', '/signup'];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -57,13 +49,6 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
-
-  console.log('[Middleware]', {
-    isProtectedRoute,
-    isAuthRoute,
-    willRedirectToLogin: isProtectedRoute && !user,
-    willRedirectToDashboard: isAuthRoute && !!user,
-  });
 
   // 認証が必要なページで未ログインの場合はログインページへ
   if (isProtectedRoute && !user) {
