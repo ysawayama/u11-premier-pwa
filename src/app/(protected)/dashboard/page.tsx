@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Settings, ChevronDown, ChevronUp, ExternalLink, ChevronLeft, ChevronRight, Megaphone, Users, User, Trophy, BarChart3, Info, Globe, Award, BookOpen, Mail, Calendar, MapPin, IdCard, LogOut, ClipboardList } from 'lucide-react';
+import { Settings, ChevronDown, ChevronUp, ExternalLink, ChevronLeft, ChevronRight, Megaphone, Users, User, Trophy, BarChart3, Info, Globe, Award, BookOpen, Mail, Calendar, MapPin, IdCard, LogOut, ClipboardList, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { createClient } from '@/lib/supabase/client';
@@ -42,6 +42,24 @@ function getRankClass(rank: number): string {
   if (rank === 2) return 'rank-2';
   if (rank === 3) return 'rank-3';
   return '';
+}
+
+// 試合までの日数を計算
+function getDaysUntilMatch(matchDate: string): number {
+  const match = new Date(matchDate);
+  const now = new Date();
+  match.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  const diffTime = match.getTime() - now.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// カウントダウンテキストを生成
+function getCountdownText(daysUntil: number): string {
+  if (daysUntil === 0) return '今日';
+  if (daysUntil === 1) return '明日';
+  if (daysUntil < 0) return '終了';
+  return `あと${daysUntil}日`;
 }
 
 // チームイベント（試合以外）
@@ -517,6 +535,113 @@ export default function DashboardPage() {
 
         {/* 左カラム: メインコンテンツ */}
         <div className="space-y-5">
+
+        {/* 次回試合カード（MVP v2: 試合準備への導線） */}
+        {nextMatch && (
+          <section>
+            <Link href={`/matches/${nextMatch.id}`}>
+              <div
+                className="relative overflow-hidden rounded-xl p-4"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-navy) 0%, #1a365d 100%)',
+                  boxShadow: '0 4px 20px rgba(30, 64, 175, 0.3)',
+                }}
+              >
+                {/* カウントダウンバッジ */}
+                <div className="absolute top-3 right-3">
+                  <div
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold"
+                    style={{
+                      background: getDaysUntilMatch(nextMatch.match_date) <= 1
+                        ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
+                        : 'rgba(255,255,255,0.2)',
+                      color: 'white',
+                    }}
+                  >
+                    <Zap size={14} />
+                    {getCountdownText(getDaysUntilMatch(nextMatch.match_date))}
+                  </div>
+                </div>
+
+                {/* タイトル */}
+                <p className="text-xs text-white/70 mb-1">次回のリーグ戦</p>
+
+                {/* 日時 */}
+                <p className="text-lg font-bold text-white mb-3">
+                  {formatMatchDate(nextMatch.match_date).full} {formatMatchDate(nextMatch.match_date).time}
+                </p>
+
+                {/* 対戦カード */}
+                <div className="flex items-center justify-between bg-white/10 rounded-lg p-3 mb-3">
+                  {/* ホームチーム */}
+                  <div className="flex items-center gap-2 flex-1">
+                    {nextMatch.home_team.logo_url ? (
+                      <div className="w-10 h-10 relative rounded-full overflow-hidden bg-white">
+                        <Image
+                          src={nextMatch.home_team.logo_url}
+                          alt={nextMatch.home_team.name}
+                          fill
+                          className="object-contain p-1"
+                          sizes="40px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-white font-bold">{nextMatch.home_team.name[0]}</span>
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-white truncate">
+                      {nextMatch.home_team.short_name || nextMatch.home_team.name}
+                    </span>
+                  </div>
+
+                  <span className="text-white/60 font-bold mx-3">vs</span>
+
+                  {/* アウェイチーム */}
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <span className="text-sm font-medium text-white truncate">
+                      {nextMatch.away_team.short_name || nextMatch.away_team.name}
+                    </span>
+                    {nextMatch.away_team.logo_url ? (
+                      <div className="w-10 h-10 relative rounded-full overflow-hidden bg-white">
+                        <Image
+                          src={nextMatch.away_team.logo_url}
+                          alt={nextMatch.away_team.name}
+                          fill
+                          className="object-contain p-1"
+                          sizes="40px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-white font-bold">{nextMatch.away_team.name[0]}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 会場 */}
+                <div className="flex items-center gap-1 text-white/70 text-xs mb-3">
+                  <MapPin size={12} />
+                  <span>{nextMatch.venue}</span>
+                </div>
+
+                {/* 準備するボタン */}
+                <div
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium text-sm"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--color-accent) 0%, #dc2626 100%)',
+                    color: 'white',
+                  }}
+                >
+                  試合の準備をする
+                  <ChevronRight size={16} />
+                </div>
+              </div>
+            </Link>
+          </section>
+        )}
+
         {/* 今週の予定 */}
         <section>
           <div className="flex items-center justify-between mb-3">

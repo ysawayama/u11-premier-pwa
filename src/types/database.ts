@@ -233,11 +233,72 @@ export interface Match {
   referee: string | null;
   notes: string | null;
 
+  // 会場詳細情報（MVP v2追加）
+  venue_address: string | null;
+  venue_map_url: string | null;
+  venue_parking_info: string | null;
+
   // メタ情報
   created_by: string | null;
   updated_by: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ============================================
+// MVP v2: 試合出場記録
+// ============================================
+
+export interface MatchLineup {
+  id: string;
+  match_id: string;
+  player_id: string;
+  team_id: string;
+
+  // 出場情報（ピリオド単位）
+  is_starter: boolean;
+  played_first_half: boolean;
+  played_second_half: boolean;
+
+  // 選手情報（試合時点）
+  position: string | null;
+  jersey_number: number | null;
+
+  // メタ情報
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MatchLineupWithPlayer extends MatchLineup {
+  player: Player;
+}
+
+// ============================================
+// MVP v2: 選手シーズンサマリー（ビュー）
+// ============================================
+
+export interface PlayerSeasonSummary {
+  player_id: string;
+  family_name: string;
+  given_name: string;
+  team_id: string;
+  uniform_number: number | null;
+  position: string | null;
+  team_name: string;
+  team_short_name: string | null;
+  season_id: string;
+  season_name: string;
+
+  // 出場統計
+  matches_played: number;
+  starts: number;
+  goals: number;
+  first_goal_date: string | null;
+
+  // 勝敗
+  wins: number;
+  draws: number;
+  losses: number;
 }
 
 export interface MatchEvent {

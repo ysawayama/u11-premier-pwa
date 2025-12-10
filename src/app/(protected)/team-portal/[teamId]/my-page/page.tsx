@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getSoccerNotesByPlayer, createSoccerNote, updateSoccerNote, deleteSoccerNote } from '@/lib/api/soccerNotes';
 import { getLifeLogsByPlayer } from '@/lib/api/soccerLifeLogs';
-import type { Player, TeamSchedule, TeamStandingWithTeam, SoccerNoteWithCoach, SoccerLifeLog } from '@/types/database';
-import { MapPin, Calendar } from 'lucide-react';
+import type { Player, TeamSchedule, TeamStandingWithTeam, SoccerNoteWithCoach, SoccerLifeLog, MatchWithTeams, MatchLineup } from '@/types/database';
+import { MapPin, Calendar, Trophy, TrendingUp, Star, ChevronRight } from 'lucide-react';
 
 // 練習スケジュール
 type PracticeSchedule = {
@@ -153,6 +153,18 @@ type PlayerPerformance = {
   assists: number;
 };
 
+// MVP v2: 出場記録付き試合
+type MatchWithLineup = MatchWithTeams & {
+  lineup?: MatchLineup;
+};
+
+// MVP v2: ハイライトイベント
+type HighlightEvent = {
+  type: 'first_goal' | 'first_start' | 'milestone';
+  date: string;
+  description: string;
+};
+
 type ActiveTab = 'overview' | 'lifelog' | 'note' | 'album';
 
 /**
@@ -169,6 +181,16 @@ export default function MyPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+
+  // MVP v2: 最近の試合と成長サマリー
+  const [recentMatches, setRecentMatches] = useState<MatchWithLineup[]>([]);
+  const [seasonStats, setSeasonStats] = useState<{
+    wins: number;
+    draws: number;
+    losses: number;
+    firstGoalDate: string | null;
+    firstStartDate: string | null;
+  } | null>(null);
 
   // サッカーライフログ関連
   const [lifeLogs, setLifeLogs] = useState<SoccerLifeLog[]>([]);
@@ -370,6 +392,81 @@ export default function MyPlayerPage() {
 
       setStandings((standingsData || []) as TeamStandingWithTeam[]);
 
+      // ========================================
+      // MVP v2: 最近の試合（出場情報付き）を取得
+      // ========================================
+      const { data: matchesData } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          home_team:teams!matches_home_team_id_fkey(*),
+          away_team:teams!matches_away_team_id_fkey(*)
+        `)
+        .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+        .eq('status', 'finished')
+        .order('match_date', { ascending: false })
+        .limit(5);
+
+      if (matchesData && matchesData.length > 0) {
+        // 各試合の出場情報を取得
+        const matchIds = matchesData.map(m => m.id);
+        const { data: lineupsData } = await supabase
+          .from('match_lineups')
+          .select('*')
+          .eq('player_id', playerData.id)
+          .in('match_id', matchIds);
+
+        const lineupMap = new Map(lineupsData?.map(l => [l.match_id, l]) || []);
+
+        const matchesWithLineup: MatchWithLineup[] = matchesData.map(m => ({
+          ...m,
+          lineup: lineupMap.get(m.id),
+        }));
+
+        setRecentMatches(matchesWithLineup);
+
+        // 勝敗を計算
+        let wins = 0, draws = 0, losses = 0;
+        matchesWithLineup.forEach(m => {
+          if (!m.lineup) return; // 出場していない試合はカウントしない
+          const isHome = m.home_team_id === teamId;
+          const myScore = isHome ? m.home_score : m.away_score;
+          const oppScore = isHome ? m.away_score : m.home_score;
+          if (myScore === null || oppScore === null) return;
+          if (myScore > oppScore) wins++;
+          else if (myScore < oppScore) losses++;
+          else draws++;
+        });
+
+        // 初ゴール日を取得
+        const { data: firstGoalEvent } = await supabase
+          .from('match_events')
+          .select('match_id, matches(match_date)')
+          .eq('player_id', playerData.id)
+          .eq('event_type', 'goal')
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .single();
+
+        // 初スタメン日を取得
+        const { data: firstStartLineup } = await supabase
+          .from('match_lineups')
+          .select('match_id, matches(match_date)')
+          .eq('player_id', playerData.id)
+          .eq('is_starter', true)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .single();
+
+        setSeasonStats({
+          wins,
+          draws,
+          losses,
+          firstGoalDate: (firstGoalEvent?.matches as any)?.match_date || null,
+          firstStartDate: (firstStartLineup?.matches as any)?.match_date || null,
+        });
+      }
+
     } catch (err) {
       console.error('データの取得に失敗:', err);
       setError('データの取得に失敗しました');
@@ -540,6 +637,151 @@ export default function MyPlayerPage() {
                 </div>
               </div>
             </section>
+
+            {/* ========================================== */}
+            {/* MVP v2: シーズンサマリー */}
+            {/* ========================================== */}
+            <section className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-sm p-4 sm:p-6 text-white">
+              <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                <Trophy size={18} />
+                2025年シーズン サマリー
+              </h2>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="text-center p-3 bg-white/10 rounded-lg">
+                  <p className="text-2xl sm:text-3xl font-bold">{performance?.matches_played || 0}</p>
+                  <p className="text-xs text-white/70 mt-1">出場</p>
+                </div>
+                <div className="text-center p-3 bg-white/10 rounded-lg">
+                  <p className="text-xl sm:text-2xl font-bold">
+                    <span className="text-green-300">{seasonStats?.wins || 0}</span>
+                    <span className="text-white/50 mx-1">-</span>
+                    <span className="text-yellow-300">{seasonStats?.draws || 0}</span>
+                    <span className="text-white/50 mx-1">-</span>
+                    <span className="text-red-300">{seasonStats?.losses || 0}</span>
+                  </p>
+                  <p className="text-xs text-white/70 mt-1">勝敗</p>
+                </div>
+                <div className="text-center p-3 bg-white/10 rounded-lg">
+                  <p className="text-2xl sm:text-3xl font-bold">{performance?.goals || 0}</p>
+                  <p className="text-xs text-white/70 mt-1">ゴール</p>
+                </div>
+              </div>
+
+              {/* ハイライト */}
+              {(seasonStats?.firstGoalDate || seasonStats?.firstStartDate) && (
+                <div className="space-y-2">
+                  {seasonStats.firstGoalDate && (
+                    <div className="flex items-center gap-2 p-2 bg-white/10 rounded-lg">
+                      <Star size={16} className="text-yellow-300" />
+                      <span className="text-sm">
+                        初ゴール達成！
+                        <span className="text-white/70 ml-1">
+                          ({new Date(seasonStats.firstGoalDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })})
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {seasonStats.firstStartDate && (
+                    <div className="flex items-center gap-2 p-2 bg-white/10 rounded-lg">
+                      <Star size={16} className="text-yellow-300" />
+                      <span className="text-sm">
+                        初スタメン！
+                        <span className="text-white/70 ml-1">
+                          ({new Date(seasonStats.firstStartDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })})
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+
+            {/* ========================================== */}
+            {/* MVP v2: 最近の試合 */}
+            {/* ========================================== */}
+            {recentMatches.length > 0 && (
+              <section className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                  <TrendingUp size={18} className="text-primary" />
+                  最近の試合
+                </h2>
+                <div className="space-y-3">
+                  {recentMatches.map((match) => {
+                    const isHome = match.home_team_id === teamId;
+                    const opponent = isHome ? match.away_team : match.home_team;
+                    const myScore = isHome ? match.home_score : match.away_score;
+                    const oppScore = isHome ? match.away_score : match.home_score;
+                    const result = myScore !== null && oppScore !== null
+                      ? myScore > oppScore ? 'win' : myScore < oppScore ? 'lose' : 'draw'
+                      : null;
+
+                    return (
+                      <Link
+                        key={match.id}
+                        href={`/matches/${match.id}`}
+                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        {/* 日付 */}
+                        <div className="text-center w-12 flex-shrink-0">
+                          <p className="text-xs font-medium text-gray-500">
+                            {new Date(match.match_date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}
+                          </p>
+                          {result && (
+                            <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold ${
+                              result === 'win' ? 'bg-green-100 text-green-700' :
+                              result === 'lose' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {result === 'win' ? '勝' : result === 'lose' ? '敗' : '分'}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* 相手チーム */}
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {opponent.logo_url && (
+                            <Image
+                              src={opponent.logo_url}
+                              alt={opponent.name}
+                              width={24}
+                              height={24}
+                              className="object-contain flex-shrink-0"
+                            />
+                          )}
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            vs {opponent.short_name || opponent.name}
+                          </span>
+                        </div>
+
+                        {/* スコア */}
+                        <div className="text-base font-bold text-gray-900 flex-shrink-0">
+                          {myScore ?? '-'} - {oppScore ?? '-'}
+                        </div>
+
+                        {/* 出場情報 */}
+                        <div className="text-xs text-right w-16 flex-shrink-0">
+                          {match.lineup ? (
+                            <span className="text-green-600">
+                              {match.lineup.is_starter ? '先発' : '途中出場'}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">ベンチ外</span>
+                          )}
+                        </div>
+
+                        <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />
+                      </Link>
+                    );
+                  })}
+                </div>
+                <Link
+                  href="/matches"
+                  className="mt-4 block text-center text-sm text-primary hover:underline py-2"
+                >
+                  すべての試合を見る
+                </Link>
+              </section>
+            )}
 
             {/* 自己紹介 */}
             {player.bio && (
