@@ -59,22 +59,135 @@ export default function MatchPreparePage() {
       setLoading(true);
       const supabase = createClient();
 
-      // 試合情報を取得
-      const matchData = await getMatchById(matchId);
-      setMatch(matchData);
-
       // ログインユーザーの選手情報を取得
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: playerData } = await supabase
           .from('players')
-          .select('*')
+          .select('*, team:teams(*)')
           .eq('user_id', user.id)
           .eq('is_active', true)
           .single();
 
         if (playerData) {
           setPlayer(playerData);
+
+          // デモ用IDの場合はダミーデータを使用
+          if (matchId === 'demo-match-1') {
+            const demoMatch: MatchWithTeams = {
+              id: 'demo-match-1',
+              home_team_id: playerData.team_id,
+              away_team_id: 'demo-azamino',
+              match_date: '2025-12-07T14:00:00+09:00',
+              venue: 'あざみ野西公園',
+              venue_address: '神奈川県横浜市青葉区あざみ野南',
+              venue_map_url: 'https://maps.google.com/?q=あざみ野西公園',
+              venue_parking_info: '近隣コインパーキングをご利用ください',
+              status: 'scheduled',
+              match_type: 'league',
+              home_score: null,
+              away_score: null,
+              weather: null,
+              temperature: null,
+              referee: null,
+              notes: '最終節！優勝をかけた大一番\n集合時間: 13:00\n持ち物忘れに注意',
+              season_id: null,
+              round: 10,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              home_team: playerData.team || {
+                id: playerData.team_id,
+                name: '大豆戸FC',
+                short_name: '大豆戸',
+                logo_url: null,
+                prefecture_id: null,
+                founded_year: null,
+                home_ground: null,
+                description: null,
+                website_url: null,
+                contact_email: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+              away_team: {
+                id: 'demo-azamino',
+                name: 'あざみ野FC',
+                short_name: 'あざみ野',
+                logo_url: null,
+                prefecture_id: null,
+                founded_year: null,
+                home_ground: null,
+                description: null,
+                website_url: null,
+                contact_email: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            };
+            setMatch(demoMatch);
+          } else {
+            // 通常の試合情報を取得
+            const matchData = await getMatchById(matchId);
+            setMatch(matchData);
+          }
+        }
+      } else {
+        // 未ログインの場合もデモ表示
+        if (matchId === 'demo-match-1') {
+          const demoMatch: MatchWithTeams = {
+            id: 'demo-match-1',
+            home_team_id: 'demo-mamedo',
+            away_team_id: 'demo-azamino',
+            match_date: '2025-12-07T14:00:00+09:00',
+            venue: 'あざみ野西公園',
+            venue_address: '神奈川県横浜市青葉区あざみ野南',
+            venue_map_url: 'https://maps.google.com/?q=あざみ野西公園',
+            venue_parking_info: '近隣コインパーキングをご利用ください',
+            status: 'scheduled',
+            match_type: 'league',
+            home_score: null,
+            away_score: null,
+            weather: null,
+            temperature: null,
+            referee: null,
+            notes: '最終節！優勝をかけた大一番\n集合時間: 13:00\n持ち物忘れに注意',
+            season_id: null,
+            round: 10,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            home_team: {
+              id: 'demo-mamedo',
+              name: '大豆戸FC',
+              short_name: '大豆戸',
+              logo_url: null,
+              prefecture_id: null,
+              founded_year: null,
+              home_ground: null,
+              description: null,
+              website_url: null,
+              contact_email: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            away_team: {
+              id: 'demo-azamino',
+              name: 'あざみ野FC',
+              short_name: 'あざみ野',
+              logo_url: null,
+              prefecture_id: null,
+              founded_year: null,
+              home_ground: null,
+              description: null,
+              website_url: null,
+              contact_email: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          };
+          setMatch(demoMatch);
+        } else {
+          const matchData = await getMatchById(matchId);
+          setMatch(matchData);
         }
       }
     } catch (err: any) {
@@ -98,13 +211,14 @@ export default function MatchPreparePage() {
   };
 
   // 試合までの日数計算
+  // MVP v2 デモ用: 2025年12月1日時点での表示をシミュレート
   const getDaysUntil = () => {
     if (!match) return 0;
     const matchDate = new Date(match.match_date);
-    const now = new Date();
+    // デモ用: 実際の今日の代わりに12月1日を基準日として使用
+    const demoToday = new Date('2025-12-01T00:00:00+09:00');
     matchDate.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    return Math.ceil((matchDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.ceil((matchDate.getTime() - demoToday.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   const getCountdownText = () => {
