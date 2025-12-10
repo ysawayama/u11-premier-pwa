@@ -45,12 +45,13 @@ function getRankClass(rank: number): string {
 }
 
 // 試合までの日数を計算
+// MVP v2 デモ用: 2025年12月1日時点での表示をシミュレート
 function getDaysUntilMatch(matchDate: string): number {
   const match = new Date(matchDate);
-  const now = new Date();
+  // デモ用: 実際の今日の代わりに12月1日を基準日として使用
+  const demoToday = new Date('2025-12-01T00:00:00+09:00');
   match.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
-  const diffTime = match.getTime() - now.getTime();
+  const diffTime = match.getTime() - demoToday.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
@@ -238,7 +239,63 @@ export default function DashboardPage() {
             .limit(1)
             .single();
 
-          if (nextMatchData) setNextMatch(nextMatchData as MatchWithTeams);
+          if (nextMatchData) {
+            setNextMatch(nextMatchData as MatchWithTeams);
+          } else {
+            // MVP v2 デモ用: DBに次回試合がない場合はダミーデータを表示
+            // 2025年12月1日時点での表示をシミュレート（12月7日の試合まであと6日）
+            const demoMatch: MatchWithTeams = {
+              id: 'demo-match-1',
+              home_team_id: teamData.id,
+              away_team_id: 'demo-azamino',
+              match_date: '2025-12-07T14:00:00+09:00',
+              venue: 'あざみ野西公園',
+              venue_address: '神奈川県横浜市青葉区あざみ野南',
+              venue_map_url: 'https://maps.google.com/?q=あざみ野西公園',
+              venue_parking_info: '近隣コインパーキングをご利用ください',
+              status: 'scheduled',
+              match_type: 'league',
+              home_score: null,
+              away_score: null,
+              weather: null,
+              temperature: null,
+              referee: null,
+              notes: '最終節！優勝をかけた大一番',
+              season_id: null,
+              round: 10,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              home_team: {
+                id: teamData.id,
+                name: teamData.name,
+                short_name: teamData.short_name,
+                logo_url: teamData.logo_url,
+                prefecture_id: teamData.prefecture_id,
+                founded_year: teamData.founded_year,
+                home_ground: teamData.home_ground,
+                description: teamData.description,
+                website_url: teamData.website_url,
+                contact_email: teamData.contact_email,
+                created_at: teamData.created_at,
+                updated_at: teamData.updated_at,
+              },
+              away_team: {
+                id: 'demo-azamino',
+                name: 'あざみ野FC',
+                short_name: 'あざみ野',
+                logo_url: '/teams/azamino.png', // ロゴがない場合はフォールバック表示
+                prefecture_id: null,
+                founded_year: null,
+                home_ground: null,
+                description: null,
+                website_url: null,
+                contact_email: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            };
+            setNextMatch(demoMatch);
+          }
         }
 
         const startOfWeek = new Date();
