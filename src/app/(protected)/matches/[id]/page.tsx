@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, ExternalLink, CheckSquare, Square, Clock, Trophy, TrendingUp, TrendingDown, Minus, ChevronRight, Users } from 'lucide-react';
+import { MapPin, Clock, Trophy, ChevronRight } from 'lucide-react';
 import { getMatchById } from '@/lib/api/matches';
 import { createClient } from '@/lib/supabase/client';
 import type { MatchWithTeams, MatchStatus, MatchEvent, TeamStanding } from '@/types/database';
@@ -24,17 +24,8 @@ export default function MatchDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 試合準備チェックリスト（ローカルストレージで管理）
-  const [checklist, setChecklist] = useState({
-    uniform: false,
-    shinpads: false,
-    drinks: false,
-    playerCard: false,
-  });
-
   useEffect(() => {
     loadMatch();
-    loadChecklist();
   }, [matchId]);
 
   const loadMatch = async () => {
@@ -87,19 +78,6 @@ export default function MatchDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const loadChecklist = () => {
-    const saved = localStorage.getItem(`match-checklist-${matchId}`);
-    if (saved) {
-      setChecklist(JSON.parse(saved));
-    }
-  };
-
-  const toggleCheckItem = (key: keyof typeof checklist) => {
-    const newChecklist = { ...checklist, [key]: !checklist[key] };
-    setChecklist(newChecklist);
-    localStorage.setItem(`match-checklist-${matchId}`, JSON.stringify(newChecklist));
   };
 
   // ステータス表示用のラベルと色
@@ -176,16 +154,6 @@ export default function MatchDetailPage() {
   const isInProgress = match.status === 'in_progress';
   const isScheduled = match.status === 'scheduled';
   const daysUntil = getDaysUntil();
-
-  // チェックリストアイテム
-  const checklistItems = [
-    { key: 'uniform' as const, label: 'ユニフォーム' },
-    { key: 'shinpads' as const, label: 'すね当て' },
-    { key: 'drinks' as const, label: 'ドリンク（2本以上）' },
-    { key: 'playerCard' as const, label: '選手証' },
-  ];
-
-  const checkedCount = Object.values(checklist).filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -366,99 +334,34 @@ export default function MatchDetailPage() {
         </div>
 
         {/* ========================================== */}
-        {/* MVP v2: 試合準備セクション（試合前のみ表示） */}
+        {/* MVP v2: 試合準備への導線（試合前のみ表示） */}
         {/* ========================================== */}
         {isScheduled && daysUntil >= 0 && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Clock size={20} className="text-primary" />
-                  試合準備
-                </h2>
-                {daysUntil <= 3 && (
-                  <span className="px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-700">
-                    {daysUntil === 0 ? '今日！' : daysUntil === 1 ? '明日！' : `あと${daysUntil}日`}
-                  </span>
-                )}
-              </div>
-
-              {/* 会場情報 */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                  <MapPin size={14} />
-                  会場情報
-                </h3>
-                <p className="text-sm text-gray-900 font-medium">{match.venue}</p>
-                {match.venue_address && (
-                  <p className="text-xs text-gray-600 mt-1">{match.venue_address}</p>
-                )}
-                {match.venue_map_url && (
-                  <a
-                    href={match.venue_map_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
-                  >
-                    Google Mapで開く
-                    <ExternalLink size={12} />
-                  </a>
-                )}
-                {match.venue_parking_info && (
-                  <div className="mt-2 text-xs text-gray-600">
-                    🅿 {match.venue_parking_info}
-                  </div>
-                )}
-              </div>
-
-              {/* 持ち物チェックリスト */}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  持ち物チェックリスト ({checkedCount}/{checklistItems.length})
-                </h3>
-                <div className="space-y-2">
-                  {checklistItems.map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => toggleCheckItem(item.key)}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg border transition-colors"
-                      style={{
-                        borderColor: checklist[item.key] ? 'var(--color-primary)' : '#e5e7eb',
-                        backgroundColor: checklist[item.key] ? 'rgba(30, 64, 175, 0.05)' : 'white',
-                      }}
-                    >
-                      {checklist[item.key] ? (
-                        <CheckSquare size={20} className="text-primary" />
-                      ) : (
-                        <Square size={20} className="text-gray-400" />
-                      )}
-                      <span className={`text-sm ${checklist[item.key] ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
-                        {item.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 選手証への導線 */}
-              <Link
-                href="/player-card"
-                className="block w-full p-4 rounded-lg border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 transition-colors"
+          <div className="mb-6">
+            <Link href={`/matches/${matchId}/prepare`}>
+              <div
+                className="rounded-xl p-5 text-white relative overflow-hidden transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                style={{
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  boxShadow: '0 4px 20px rgba(220, 38, 38, 0.3)',
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users size={20} className="text-primary" />
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                      <Clock size={24} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">デジタル選手証</p>
-                      <p className="text-xs text-gray-500">会場受付で提示</p>
+                      <p className="font-bold text-lg">試合の準備をする</p>
+                      <p className="text-sm text-white/80">
+                        {daysUntil === 0 ? '今日の試合！' : daysUntil === 1 ? '明日の試合！' : `あと${daysUntil}日`}
+                      </p>
                     </div>
                   </div>
-                  <ChevronRight size={20} className="text-gray-400" />
+                  <ChevronRight size={24} />
                 </div>
-              </Link>
-            </div>
+              </div>
+            </Link>
           </div>
         )}
 

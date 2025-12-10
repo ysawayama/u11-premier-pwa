@@ -536,109 +536,134 @@ export default function DashboardPage() {
         {/* 左カラム: メインコンテンツ */}
         <div className="space-y-5">
 
-        {/* 次回試合カード（MVP v2: 試合準備への導線） */}
+        {/* 次回試合カード - ファーストビューの主役 */}
         {nextMatch && (
-          <section>
-            <Link href={`/matches/${nextMatch.id}`}>
+          <section className="relative -mx-4 lg:mx-0">
+            <div
+              className="relative overflow-hidden p-6 lg:rounded-2xl"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-navy) 0%, #1e3a5f 50%, #0f172a 100%)',
+                minHeight: '320px',
+              }}
+            >
+              {/* 背景パターン（控えめ） */}
               <div
-                className="relative overflow-hidden rounded-xl p-4"
+                className="absolute inset-0 opacity-5"
                 style={{
-                  background: 'linear-gradient(135deg, var(--color-navy) 0%, #1a365d 100%)',
-                  boxShadow: '0 4px 20px rgba(30, 64, 175, 0.3)',
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
                 }}
-              >
-                {/* カウントダウンバッジ */}
-                <div className="absolute top-3 right-3">
-                  <div
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold"
-                    style={{
-                      background: getDaysUntilMatch(nextMatch.match_date) <= 1
-                        ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
-                        : 'rgba(255,255,255,0.2)',
-                      color: 'white',
-                    }}
-                  >
-                    <Zap size={14} />
-                    {getCountdownText(getDaysUntilMatch(nextMatch.match_date))}
-                  </div>
-                </div>
+              />
 
-                {/* タイトル */}
-                <p className="text-xs text-white/70 mb-1">次回のリーグ戦</p>
-
-                {/* 日時 */}
-                <p className="text-lg font-bold text-white mb-3">
-                  {formatMatchDate(nextMatch.match_date).full} {formatMatchDate(nextMatch.match_date).time}
-                </p>
-
-                {/* 対戦カード */}
-                <div className="flex items-center justify-between bg-white/10 rounded-lg p-3 mb-3">
-                  {/* ホームチーム */}
-                  <div className="flex items-center gap-2 flex-1">
-                    {nextMatch.home_team.logo_url ? (
-                      <div className="w-10 h-10 relative rounded-full overflow-hidden bg-white">
-                        <Image
-                          src={nextMatch.home_team.logo_url}
-                          alt={nextMatch.home_team.name}
-                          fill
-                          className="object-contain p-1"
-                          sizes="40px"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <span className="text-white font-bold">{nextMatch.home_team.name[0]}</span>
-                      </div>
-                    )}
-                    <span className="text-sm font-medium text-white truncate">
-                      {nextMatch.home_team.short_name || nextMatch.home_team.name}
-                    </span>
-                  </div>
-
-                  <span className="text-white/60 font-bold mx-3">vs</span>
-
-                  {/* アウェイチーム */}
-                  <div className="flex items-center gap-2 flex-1 justify-end">
-                    <span className="text-sm font-medium text-white truncate">
-                      {nextMatch.away_team.short_name || nextMatch.away_team.name}
-                    </span>
-                    {nextMatch.away_team.logo_url ? (
-                      <div className="w-10 h-10 relative rounded-full overflow-hidden bg-white">
-                        <Image
-                          src={nextMatch.away_team.logo_url}
-                          alt={nextMatch.away_team.name}
-                          fill
-                          className="object-contain p-1"
-                          sizes="40px"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <span className="text-white font-bold">{nextMatch.away_team.name[0]}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 会場 */}
-                <div className="flex items-center gap-1 text-white/70 text-xs mb-3">
-                  <MapPin size={12} />
-                  <span>{nextMatch.venue}</span>
-                </div>
-
-                {/* 準備するボタン */}
+              {/* カウントダウン - 大きく目立たせる */}
+              <div className="text-center mb-6">
                 <div
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium text-sm"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-black"
                   style={{
-                    background: 'linear-gradient(135deg, var(--color-accent) 0%, #dc2626 100%)',
+                    background: getDaysUntilMatch(nextMatch.match_date) <= 1
+                      ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                      : getDaysUntilMatch(nextMatch.match_date) <= 3
+                      ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
+                      : 'rgba(255,255,255,0.15)',
                     color: 'white',
+                    boxShadow: getDaysUntilMatch(nextMatch.match_date) <= 3
+                      ? '0 4px 20px rgba(234, 88, 12, 0.4)'
+                      : 'none',
                   }}
                 >
-                  試合の準備をする
-                  <ChevronRight size={16} />
+                  <Zap size={20} />
+                  {getCountdownText(getDaysUntilMatch(nextMatch.match_date))}
                 </div>
               </div>
-            </Link>
+
+              {/* 対戦カード - メイン */}
+              <div className="flex items-center justify-center gap-4 mb-6">
+                {/* ホームチーム */}
+                <div className="flex flex-col items-center flex-1">
+                  {nextMatch.home_team.logo_url ? (
+                    <div className="w-20 h-20 relative rounded-full overflow-hidden bg-white mb-2 shadow-lg">
+                      <Image
+                        src={nextMatch.home_team.logo_url}
+                        alt={nextMatch.home_team.name}
+                        fill
+                        className="object-contain p-2"
+                        sizes="80px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                      <span className="text-3xl font-bold text-white">{nextMatch.home_team.name[0]}</span>
+                    </div>
+                  )}
+                  <span className="text-sm font-bold text-white text-center">
+                    {nextMatch.home_team.short_name || nextMatch.home_team.name}
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-black text-white/40 mb-1">VS</span>
+                </div>
+
+                {/* アウェイチーム */}
+                <div className="flex flex-col items-center flex-1">
+                  {nextMatch.away_team.logo_url ? (
+                    <div className="w-20 h-20 relative rounded-full overflow-hidden bg-white mb-2 shadow-lg">
+                      <Image
+                        src={nextMatch.away_team.logo_url}
+                        alt={nextMatch.away_team.name}
+                        fill
+                        className="object-contain p-2"
+                        sizes="80px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                      <span className="text-3xl font-bold text-white">{nextMatch.away_team.name[0]}</span>
+                    </div>
+                  )}
+                  <span className="text-sm font-bold text-white text-center">
+                    {nextMatch.away_team.short_name || nextMatch.away_team.name}
+                  </span>
+                </div>
+              </div>
+
+              {/* 日時・会場 */}
+              <div className="text-center mb-6 space-y-2">
+                <p className="text-xl font-bold text-white">
+                  {formatMatchDate(nextMatch.match_date).full}
+                </p>
+                <p className="text-2xl font-black text-white">
+                  {formatMatchDate(nextMatch.match_date).time} <span className="text-base font-normal text-white/70">キックオフ</span>
+                </p>
+                <div className="flex items-center justify-center gap-1 text-white/70 text-sm">
+                  <MapPin size={14} />
+                  <span>{nextMatch.venue}</span>
+                </div>
+              </div>
+
+              {/* 試合の準備をするボタン - 専用画面へ直リンク */}
+              <Link href={`/matches/${nextMatch.id}/prepare`}>
+                <div
+                  className="flex items-center justify-center gap-3 py-4 rounded-xl font-bold text-base shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: 'white',
+                    boxShadow: '0 4px 20px rgba(220, 38, 38, 0.4)',
+                  }}
+                >
+                  <Zap size={20} />
+                  試合の準備をする
+                  <ChevronRight size={20} />
+                </div>
+              </Link>
+
+              {/* 試合詳細リンク（サブ） */}
+              <Link
+                href={`/matches/${nextMatch.id}`}
+                className="block text-center mt-3 text-sm text-white/60 hover:text-white/80"
+              >
+                試合詳細を見る →
+              </Link>
+            </div>
           </section>
         )}
 
