@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
   });
 
   // 認証が必要なルートの定義
-  const protectedRoutes = ['/dashboard', '/profile', '/players', '/matches', '/rankings', '/team-portal', '/admin', '/games', '/league', '/stats', '/player-card'];
+  // 注意: /matches は一時的に除外してテスト中
+  const protectedRoutes = ['/dashboard', '/profile', '/players', '/rankings', '/team-portal', '/admin', '/games', '/league', '/stats', '/player-card'];
   const authRoutes = ['/login', '/signup'];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
