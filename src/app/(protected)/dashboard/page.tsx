@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Settings, ChevronDown, ChevronUp, ExternalLink, ChevronLeft, ChevronRight, Megaphone, Users, User, Trophy, BarChart3, Info, Globe, Award, BookOpen, Mail, Calendar, MapPin, IdCard, LogOut, ClipboardList, Zap } from 'lucide-react';
+import { Settings, ChevronDown, ChevronUp, ExternalLink, ChevronLeft, ChevronRight, Megaphone, Users, User, Trophy, BarChart3, Info, Globe, Award, BookOpen, Mail, Calendar, MapPin, IdCard, LogOut, ClipboardList, Zap, History, Clock, Play, FileText, PenLine, X } from 'lucide-react';
+import SoccerJourney from '@/components/dashboard/SoccerJourney';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { createClient } from '@/lib/supabase/client';
@@ -125,6 +126,41 @@ const teamEvents: TeamEvent[] = [
   },
 ];
 
+// 前試合データ（デモ用: 2025年10月13日 あざみ野キッカーズ戦）
+type PreviousMatch = {
+  id: string;
+  date: string;
+  kickoffTime: string; // HH:MM形式
+  opponent: string;
+  myScore: number;
+  oppScore: number;
+  result: 'win' | 'draw' | 'loss';
+};
+
+const demoPreviousMatch: PreviousMatch = {
+  id: 'demo-review-match',
+  date: '2025-10-13',
+  kickoffTime: '14:00',
+  opponent: 'あざみ野キッカーズ',
+  myScore: 8,
+  oppScore: 0,
+  result: 'win',
+};
+
+// 試合後かどうか判定（キックオフ時間 + 2時間後以降）
+// デモ用: 基準日を2025年10月13日16:30として判定（試合後を想定）
+function isAfterMatch(matchDate: string, kickoffTime: string): boolean {
+  // デモ用: 常に試合後として扱う
+  return true;
+}
+
+// 試合当日かどうか判定
+// デモ用: 基準日を2025年10月14日として判定（翌日を想定）
+function isMatchDay(matchDate: string): boolean {
+  // デモ用: 翌日として扱う（「前試合を振り返る」表示）
+  return false;
+}
+
 // 曜日名を取得
 const weekdayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -190,6 +226,293 @@ function formatEventDate(date: Date): string {
   return `${date.getMonth() + 1}/${date.getDate()}(${weekdayNames[date.getDay()]})`;
 }
 
+// 過去の試合の型
+type PastMatch = {
+  id: string;
+  date: string;
+  opponent: string;
+  opponentLogo: string | null;
+  homeScore: number;
+  awayScore: number;
+  isHome: boolean;
+  result: 'win' | 'draw' | 'loss';
+  venue: string;
+  playingTime: number; // 出場時間（分）
+  coachComment: string | null;
+  videoUrl: string | null;
+  myNote: string;
+};
+
+// 過去の試合セクションコンポーネント
+function PastMatchesSection({ myTeam, myPlayer }: { myTeam: Team | null; myPlayer: Player | null }) {
+  const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+
+  // デモ用の過去試合データ（順位表に基づく大豆戸FCの戦績: 14試合 11勝 0分 3敗）
+  const pastMatches: PastMatch[] = [
+    {
+      id: 'past-1',
+      date: '2025-11-30',
+      opponent: 'あざみ野K',
+      opponentLogo: '/images/teams/azamino-kickers.png',
+      homeScore: 3,
+      awayScore: 1,
+      isHome: true,
+      result: 'win',
+      venue: '大豆戸小学校',
+      playingTime: 40,
+      coachComment: 'チーム全体で素晴らしい連携が見られました。特に前半のプレスが効いていた。澤山くんは中盤でのボール回しが良かった。シュート精度を上げていこう！',
+      videoUrl: 'https://www.youtube.com/watch?v=example1',
+      myNote: '',
+    },
+    {
+      id: 'past-2',
+      date: '2025-11-23',
+      opponent: '東海岸',
+      opponentLogo: '/images/teams/tokaigan.png',
+      homeScore: 2,
+      awayScore: 0,
+      isHome: false,
+      result: 'win',
+      venue: '東海岸グラウンド',
+      playingTime: 35,
+      coachComment: 'アウェイでの勝利、よく頑張った！守備の集中力が最後まで切れなかったのが勝因。',
+      videoUrl: null,
+      myNote: '',
+    },
+    {
+      id: 'past-3',
+      date: '2025-11-16',
+      opponent: 'SFAT伊勢原',
+      opponentLogo: '/images/teams/sfat-isehara.png',
+      homeScore: 1,
+      awayScore: 2,
+      isHome: true,
+      result: 'loss',
+      venue: '大豆戸小学校',
+      playingTime: 40,
+      coachComment: '惜しい試合だった。後半の失点はコミュニケーション不足が原因。声を出し合うことを意識しよう。',
+      videoUrl: 'https://www.youtube.com/watch?v=example3',
+      myNote: '',
+    },
+    {
+      id: 'past-4',
+      date: '2025-11-09',
+      opponent: 'PALAVRA',
+      opponentLogo: '/images/teams/palavra.png',
+      homeScore: 4,
+      awayScore: 0,
+      isHome: true,
+      result: 'win',
+      venue: '大豆戸小学校',
+      playingTime: 30,
+      coachComment: '攻撃が噛み合った試合。全員がゴールに向かう意識を持てていた。',
+      videoUrl: null,
+      myNote: '',
+    },
+    {
+      id: 'past-5',
+      date: '2025-11-02',
+      opponent: 'TDFC',
+      opponentLogo: '/images/teams/tdfc.png',
+      homeScore: 2,
+      awayScore: 1,
+      isHome: false,
+      result: 'win',
+      venue: 'TDFCグラウンド',
+      playingTime: 40,
+      coachComment: '接戦を制した。最後まで諦めない姿勢が結果につながった。',
+      videoUrl: null,
+      myNote: '',
+    },
+  ];
+
+  // ローカルストレージからノートを読み込み
+  useEffect(() => {
+    const savedNotes: Record<string, string> = {};
+    pastMatches.forEach(match => {
+      const saved = localStorage.getItem(`match-note-${match.id}`);
+      if (saved) {
+        savedNotes[match.id] = saved;
+      }
+    });
+    setNotes(savedNotes);
+  }, []);
+
+  // ノートを保存
+  const saveNote = (matchId: string, note: string) => {
+    setNotes(prev => ({ ...prev, [matchId]: note }));
+    localStorage.setItem(`match-note-${matchId}`, note);
+  };
+
+  const getResultBadge = (result: 'win' | 'draw' | 'loss') => {
+    switch (result) {
+      case 'win': return { text: '勝', bg: 'bg-green-500', color: 'text-white' };
+      case 'draw': return { text: '分', bg: 'bg-gray-400', color: 'text-white' };
+      case 'loss': return { text: '負', bg: 'bg-red-500', color: 'text-white' };
+    }
+  };
+
+  if (!myTeam) return null;
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <History size={16} className="text-purple-500" />
+          過去の試合
+        </h2>
+        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          直近5試合
+        </span>
+      </div>
+
+      {/* PC/タブレットでは2列グリッド */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {pastMatches.map((match) => {
+          const isExpanded = expandedMatchId === match.id;
+          const badge = getResultBadge(match.result);
+          const matchDate = new Date(match.date);
+
+          return (
+            <div key={match.id} className="card overflow-hidden">
+              {/* 試合概要（クリックで展開） */}
+              <button
+                onClick={() => setExpandedMatchId(isExpanded ? null : match.id)}
+                className="w-full p-3 md:p-4 flex items-center gap-2 md:gap-3 hover:bg-gray-50 transition-colors"
+              >
+                {/* 結果バッジ */}
+                <span className={`w-7 h-7 md:w-8 md:h-8 rounded-full ${badge.bg} ${badge.color} flex items-center justify-center text-xs md:text-sm font-bold flex-shrink-0`}>
+                  {badge.text}
+                </span>
+
+                {/* 対戦相手 */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {match.opponentLogo ? (
+                    <div className="w-7 h-7 md:w-8 md:h-8 relative flex-shrink-0 rounded-full overflow-hidden bg-gray-100">
+                      <Image
+                        src={match.opponentLogo}
+                        alt={match.opponent}
+                        fill
+                        className="object-contain p-1"
+                        sizes="32px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-7 h-7 md:w-8 md:h-8 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-500">{match.opponent[0]}</span>
+                    </div>
+                  )}
+                  <div className="text-left min-w-0">
+                    <p className="text-xs md:text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                      vs {match.opponent}
+                    </p>
+                    <p className="text-[10px] md:text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {matchDate.getMonth() + 1}/{matchDate.getDate()}({weekdayNames[matchDate.getDay()]}) {match.isHome ? 'H' : 'A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* スコア */}
+                <div className="text-right flex-shrink-0">
+                  <p className="text-base md:text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {match.isHome ? match.homeScore : match.awayScore} - {match.isHome ? match.awayScore : match.homeScore}
+                  </p>
+                </div>
+
+                {/* 展開アイコン */}
+                <div className="flex-shrink-0">
+                  {isExpanded ? (
+                    <ChevronUp size={18} className="text-gray-400" />
+                  ) : (
+                    <ChevronDown size={18} className="text-gray-400" />
+                  )}
+                </div>
+              </button>
+
+              {/* 詳細（展開時） */}
+              {isExpanded && (
+                <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-4">
+                  {/* 試合情報 */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">会場</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {match.venue}
+                      </p>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <div className="flex items-center gap-1 mb-1">
+                        <Clock size={12} className="text-blue-500" />
+                        <p className="text-xs text-blue-600">私の出場時間</p>
+                      </div>
+                      <p className="text-sm font-bold text-blue-700">
+                        {match.playingTime}分
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 監督コーチコメント */}
+                  {match.coachComment && (
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <div className="flex items-center gap-1 mb-2">
+                        <MessageSquare size={14} className="text-green-600" />
+                        <p className="text-xs font-medium text-green-700">監督・コーチからのコメント</p>
+                      </div>
+                      <p className="text-sm text-green-800 leading-relaxed">
+                        {match.coachComment}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 動画リンク */}
+                  {match.videoUrl && (
+                    <a
+                      href={match.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                    >
+                      <Play size={18} className="text-red-600" />
+                      <span className="text-sm font-medium text-red-700">試合動画を見る</span>
+                      <ExternalLink size={14} className="text-red-500 ml-auto" />
+                    </a>
+                  )}
+
+                  {/* 振り返りノート */}
+                  <div className="bg-yellow-50 rounded-lg p-3">
+                    <div className="flex items-center gap-1 mb-2">
+                      <PenLine size={14} className="text-yellow-600" />
+                      <p className="text-xs font-medium text-yellow-700">振り返りノート</p>
+                    </div>
+                    <textarea
+                      value={notes[match.id] || ''}
+                      onChange={(e) => saveNote(match.id, e.target.value)}
+                      placeholder="例）今日の試合ではワンタッチプレーができたけど、決定力が無かったから次回からゴール前では落ち着いて7割くらいの力でシュートを打ってみる"
+                      className="w-full p-3 rounded-lg border border-yellow-200 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300 placeholder:text-gray-300"
+                      style={{ minHeight: '80px' }}
+                    />
+                    <p className="text-xs text-yellow-600 mt-1">
+                      ※ 自分だけのメモとして保存されます
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// MessageSquareアイコン（重複回避のため別名でインポート）
+const MessageSquare = ({ size, className }: { size: number; className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
 export default function DashboardPage() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
@@ -207,12 +530,70 @@ export default function DashboardPage() {
   const [announcementsTotal, setAnnouncementsTotal] = useState(0);
   const [isWebmaster, setIsWebmaster] = useState(false);
 
+  // スポンサーバナーポップアップ
+  const [showSponsorBanner, setShowSponsorBanner] = useState(false);
+  const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
+
+  // スポンサーバナー設定（ローテーション）
+  const sponsorBanners = [
+    {
+      id: 'meitetsu',
+      name: '名鉄観光',
+      image: '/sponsors/meitetsu-newyear-banner.png',
+      alt: '名鉄観光 新年特別企画 - 初日の出 遊覧フライト / 新春・富士山遊覧フライト',
+      url: 'https://www.mwt.co.jp/grouptour/',
+    },
+    {
+      id: 'veo',
+      name: 'Veo',
+      image: '/sponsors/veo-banner.png',
+      alt: 'Veo - スポーツの映像撮影を驚くほど簡単に',
+      url: 'https://football7society.jp/veo-rental-japan/',
+    },
+    {
+      id: 'iris',
+      name: 'アイリスオーヤマ',
+      image: '/sponsors/iris-ohyama.png',
+      alt: 'アイリスオーヤマ GEO-TURF 人工芝シリーズ',
+      url: 'https://www.irisohyama.co.jp/b2b/sports/products/artificial-turf/',
+    },
+  ];
+
   // ログアウト処理
   const handleLogout = async () => {
     await logout();
     // スプラッシュから表示されるようにルートにリダイレクト
     router.push('/');
   };
+
+  // スポンサーバナー表示制御（セッション単位で1回だけ、ローテーション）
+  useEffect(() => {
+    // sessionStorageを使うことでブラウザタブ/セッション単位の制御
+    const bannerShown = sessionStorage.getItem('sponsor-banner-shown');
+    if (!bannerShown) {
+      // ローテーション: localStorageで次に表示するスポンサーのインデックスを管理
+      const lastIndex = parseInt(localStorage.getItem('sponsor-banner-index') || '0', 10);
+      const nextIndex = (lastIndex + 1) % sponsorBanners.length;
+      setCurrentSponsorIndex(nextIndex);
+      // 次回のために保存
+      localStorage.setItem('sponsor-banner-index', nextIndex.toString());
+
+      // 少し遅延して表示（ページ読み込み完了後）
+      const timer = setTimeout(() => {
+        setShowSponsorBanner(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [sponsorBanners.length]);
+
+  // バナーを閉じる
+  const closeSponsorBanner = () => {
+    setShowSponsorBanner(false);
+    sessionStorage.setItem('sponsor-banner-shown', 'true');
+  };
+
+  // 現在表示するスポンサー
+  const currentSponsor = sponsorBanners[currentSponsorIndex];
 
   useEffect(() => {
     async function fetchData() {
@@ -283,7 +664,7 @@ export default function DashboardPage() {
                 id: 'demo-azamino',
                 name: 'あざみ野FC',
                 short_name: 'あざみ野',
-                logo_url: '/teams/azamino.png', // ロゴがない場合はフォールバック表示
+                logo_url: '/images/teams/azamino-fc.png',
                 prefecture_id: null,
                 founded_year: null,
                 home_ground: null,
@@ -587,14 +968,9 @@ export default function DashboardPage() {
       {/* Main Content - 白カードベース */}
       <main className="px-4 py-4 lg:px-8 lg:py-6 max-w-7xl mx-auto">
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 lg:p-6" style={{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' }}>
-        {/* PC: 2カラム / モバイル: 1カラム */}
-        <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-6 space-y-5 lg:space-y-0">
 
-        {/* 左カラム: メインコンテンツ */}
-        <div className="space-y-5">
-
-        {/* 次回試合カード - ファーストビューの主役 */}
-        <section className="relative -mx-4 lg:mx-0">
+        {/* 次回試合カード - フル幅で表示（2カラムの外） */}
+        <section className="relative -mx-4 lg:-mx-6 -mt-4 lg:-mt-6 mb-5">
           <div
             className="relative overflow-hidden p-6 lg:rounded-2xl"
             style={{
@@ -612,8 +988,15 @@ export default function DashboardPage() {
 
             {nextMatch ? (
               <>
+                {/* 次のリーグ公式戦ラベル */}
+                <div className="absolute top-4 left-4">
+                  <span className="text-xs font-medium text-white/60 bg-white/10 px-3 py-1 rounded-full">
+                    次のリーグ公式戦
+                  </span>
+                </div>
+
                 {/* カウントダウン - 大きく目立たせる */}
-                <div className="text-center mb-6">
+                <div className="text-center mb-6 pt-4">
                   <div
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-black"
                     style={{
@@ -714,13 +1097,27 @@ export default function DashboardPage() {
                   </div>
                 </Link>
 
-                {/* 試合詳細リンク（サブ） */}
+                {/* 対戦相手について知るリンク */}
                 <Link
-                  href={`/matches/${nextMatch.id}`}
-                  className="block text-center mt-3 text-sm text-white/60 hover:text-white/80"
+                  href={`/matches/${nextMatch.id}/opponent`}
+                  className="block mt-4 py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-center text-sm text-white font-bold transition-all border border-white/30 shadow-sm"
                 >
-                  試合詳細を見る →
+                  🔍 対戦相手について知る
                 </Link>
+
+                {/* 前試合を振り返る / 本日の試合結果 */}
+                {isAfterMatch(demoPreviousMatch.date, demoPreviousMatch.kickoffTime) && (
+                  <Link
+                    href={`/matches/${demoPreviousMatch.id}/review`}
+                    className="block mt-3 py-3 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-center text-sm text-white font-bold transition-all border border-white/30 shadow-sm"
+                  >
+                    {isMatchDay(demoPreviousMatch.date) ? (
+                      <>📋 本日の試合結果</>
+                    ) : (
+                      <>📝 前試合を振り返る</>
+                    )}
+                  </Link>
+                )}
               </>
             ) : (
               /* 次回試合がない場合のプレースホルダー */
@@ -752,7 +1149,10 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* 今週の予定 */}
+        {/* メインコンテンツ - フル幅 */}
+        <div className="space-y-5">
+
+        {/* 今週の予定 - PC/タブレットでは4カラム */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
@@ -767,7 +1167,7 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="card p-4 animate-pulse">
                 <div className="h-4 bg-gray-200 rounded w-1/2 mb-3" />
                 <div className="h-6 bg-gray-200 rounded w-3/4" />
@@ -778,7 +1178,7 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {/* 練習カード */}
               <div className="card p-4" style={{ borderLeft: '4px solid var(--color-accent)' }}>
                 <h3 className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
@@ -852,12 +1252,26 @@ export default function DashboardPage() {
           )}
         </section>
 
+        {/* サッカージャーニー */}
+        <SoccerJourney />
+
+        {/* 過去の試合 */}
+        <PastMatchesSection myTeam={myTeam} myPlayer={myPlayer} />
+
+        {/* 全試合の結果を見るボタン */}
+        <Link
+          href="/my-matches"
+          className="block w-full py-3 px-4 bg-navy/10 hover:bg-navy/20 rounded-xl text-center text-sm text-navy font-medium transition-colors"
+        >
+          全試合の結果を見る →
+        </Link>
+
         {/* This Week's Games */}
         <section className="card-section">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                神奈川2部A　今週の試合
+                神奈川2部A　今週の他チームの試合
               </h2>
               {thisWeekMatches.some((m) => isToday(m.match_date)) && (
                 <span className="highlight-badge">★ 注目試合あり</span>
@@ -1003,50 +1417,37 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* マイリーグ セクション */}
+        {/* リーグ情報 セクション */}
         <section>
           <h2 className="text-sm font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Users size={16} className="text-accent" />
-            マイリーグ
+            <Award size={16} className="text-accent" />
+            リーグ情報
           </h2>
-          <div className="grid grid-cols-4 gap-3">
-            {myTeam && (
-              <Link
-                href={`/team-portal/${myTeam.id}`}
-                className="card flex flex-col items-center gap-1.5 p-3 transition-shadow hover:shadow-md"
-              >
-                <Users size={24} className="text-accent" />
-                <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-                  マイチーム
-                </span>
-              </Link>
-            )}
-            {myTeam && (
-              <Link
-                href={`/team-portal/${myTeam.id}/my-page`}
-                className="card flex flex-col items-center gap-1.5 p-3 transition-shadow hover:shadow-md"
-              >
-                <User size={24} className="text-accent" />
-                <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-                  マイページ
-                </span>
-              </Link>
-            )}
+          <div className="grid grid-cols-3 gap-3">
             <Link
               href="/standings"
-              className="card flex flex-col items-center gap-1.5 p-3 transition-shadow hover:shadow-md"
+              className="card flex flex-col items-center gap-2 p-4 transition-shadow hover:shadow-md"
             >
-              <Trophy size={24} className="text-accent" />
-              <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+              <Trophy size={28} className="text-accent" />
+              <span className="text-xs font-medium text-center" style={{ color: 'var(--text-secondary)' }}>
                 順位表
               </span>
             </Link>
             <Link
-              href="/stats"
-              className="card flex flex-col items-center gap-1.5 p-3 transition-shadow hover:shadow-md"
+              href="/results"
+              className="card flex flex-col items-center gap-2 p-4 transition-shadow hover:shadow-md"
             >
-              <BarChart3 size={24} className="text-accent" />
-              <span className="text-xs text-center leading-tight" style={{ color: 'var(--text-secondary)' }}>
+              <Calendar size={28} className="text-accent" />
+              <span className="text-xs font-medium text-center" style={{ color: 'var(--text-secondary)' }}>
+                戦績表
+              </span>
+            </Link>
+            <Link
+              href="/stats"
+              className="card flex flex-col items-center gap-2 p-4 transition-shadow hover:shadow-md"
+            >
+              <BarChart3 size={28} className="text-accent" />
+              <span className="text-xs font-medium text-center leading-tight" style={{ color: 'var(--text-secondary)' }}>
                 個人ランキング
               </span>
             </Link>
@@ -1109,100 +1510,9 @@ export default function DashboardPage() {
         </section>
 
         </div>
+        {/* メインコンテンツ終了 */}
 
-        {/* 右カラム: サイドバー（順位表のみ） */}
-        <div className="space-y-5">
-        {/* Standings */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-              順位表
-            </h2>
-            <Link href="/league" className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
-              すべて見る →
-            </Link>
-          </div>
-
-          <div className="card overflow-hidden">
-            {/* Header */}
-            <div
-              className="grid grid-cols-[32px_1fr_40px_48px_48px] gap-1 px-3 py-2 text-xs font-medium"
-              style={{ background: 'var(--bg-section)', color: 'var(--text-muted)' }}
-            >
-              <span className="text-center">#</span>
-              <span>チーム</span>
-              <span className="text-center">試</span>
-              <span className="text-center">得失</span>
-              <span className="text-center">勝点</span>
-            </div>
-
-            {/* Rows */}
-            <div>
-              {standings.slice(0, 5).map((standing) => {
-                const isMyTeam = myTeam && standing.team_id === myTeam.id;
-                const rank = standing.rank || 0;
-
-                return (
-                  <Link key={standing.id} href={`/teams/${standing.team_id}`}>
-                    <div
-                      className={`grid grid-cols-[32px_1fr_40px_48px_48px] gap-1 px-3 py-3 items-center border-b ${getRankClass(rank)} ${isMyTeam ? 'my-team-row' : ''}`}
-                      style={{ borderColor: 'var(--border)' }}
-                    >
-                      <span className="text-center font-bold" style={{ color: rank <= 3 ? (rank === 1 ? 'var(--color-gold)' : rank === 2 ? 'var(--color-silver)' : 'var(--color-bronze)') : 'var(--text-secondary)' }}>
-                        {getRankIcon(rank)}
-                      </span>
-                      <div className={`flex items-center gap-2 ${isMyTeam ? 'team-name' : ''}`}>
-                        {standing.team.logo_url ? (
-                          <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden bg-gray-100">
-                            <Image
-                              src={standing.team.logo_url}
-                              alt={standing.team.name}
-                              fill
-                              className="object-contain"
-                              sizes="24px"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-6 h-6 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
-                            <span className="text-xs text-gray-500 font-bold">{(standing.team.short_name || standing.team.name).charAt(0)}</span>
-                          </div>
-                        )}
-                        <span className="text-sm font-medium truncate" style={{ color: isMyTeam ? 'var(--color-accent)' : 'var(--text-primary)' }}>
-                          {standing.team.short_name || standing.team.name}
-                        </span>
-                      </div>
-                      <span className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-                        {standing.matches_played}
-                      </span>
-                      <span className="text-sm text-center font-medium" style={{ color: standing.goal_difference > 0 ? 'var(--color-win)' : standing.goal_difference < 0 ? 'var(--color-lose)' : 'var(--text-secondary)' }}>
-                        {standing.goal_difference > 0 ? '+' : ''}{standing.goal_difference}
-                      </span>
-                      <span className="points-large text-center">
-                        {standing.points}
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* My Team Status */}
-            {myTeamStanding && (
-              <div className="px-4 py-3" style={{ background: 'var(--color-accent-light)' }}>
-                <p className="text-sm font-medium text-center" style={{ color: 'var(--color-accent)' }}>
-                  ★ あなたのチームは現在 {myTeamStanding.rank}位 です！
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-        </div>
-        {/* サイドバー終了 */}
-
-        </div>
-        {/* 2カラムグリッド終了 */}
-
-        {/* Admin Section - 2カラムの外、フル幅 */}
+        {/* Admin Section */}
         {(user?.user_type === 'coach' || user?.user_type === 'admin') && (
           <section className="mt-5 pt-5 border-t border-gray-100">
             <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
@@ -1361,14 +1671,14 @@ export default function DashboardPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <a
-              href="https://www.irisohyama.co.jp/b2b/sports/"
+              href="https://www.irisohyama.co.jp/b2b/sports/products/artificial-turf/"
               target="_blank"
               rel="noopener noreferrer"
               className="block hover:opacity-80 transition-opacity"
             >
               <Image
                 src="/sponsors/iris-ohyama.png"
-                alt="アイリスオーヤマ"
+                alt="アイリスオーヤマ GEO-TURF"
                 width={160}
                 height={40}
                 className="h-8 sm:h-10 w-auto object-contain"
@@ -1406,6 +1716,44 @@ export default function DashboardPage() {
         </section>
         </div>
       </main>
+
+      {/* スポンサーバナーポップアップ */}
+      {showSponsorBanner && currentSponsor && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-lg w-full animate-in fade-in zoom-in duration-300">
+            {/* 閉じるボタン */}
+            <button
+              onClick={closeSponsorBanner}
+              className="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors z-10"
+              aria-label="閉じる"
+            >
+              <X size={24} className="text-gray-600" />
+            </button>
+
+            {/* バナーヘッダー */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center py-2 rounded-t-xl">
+              <p className="text-sm font-bold">スポンサーからのお知らせ</p>
+            </div>
+
+            {/* バナー画像（クリックで遷移） */}
+            <a
+              href={currentSponsor.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeSponsorBanner}
+              className="block"
+            >
+              <Image
+                src={currentSponsor.image}
+                alt={currentSponsor.alt}
+                width={600}
+                height={400}
+                className="w-full h-auto rounded-b-xl shadow-2xl hover:opacity-95 transition-opacity"
+              />
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

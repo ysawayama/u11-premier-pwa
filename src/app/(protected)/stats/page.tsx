@@ -2,190 +2,61 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ArrowLeft, Trophy, Medal } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-interface PlayerStats {
-  player_id: string;
-  player: {
-    id: string;
-    family_name: string;
-    given_name: string;
-    uniform_number: number | null;
-    team: {
-      id: string;
-      name: string;
-      short_name: string | null;
-    };
-  };
+interface ScoringRanking {
+  id: string;
+  player_name: string;
+  team_name: string;
   goals: number;
-  assists: number;
-  yellow_cards: number;
-  red_cards: number;
+  rank: number;
 }
 
-/**
- * 選手統計ページ
- */
+function getRankDisplay(rank: number): { icon: string | null; className: string } {
+  if (rank === 1) return { icon: '🥇', className: 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white' };
+  if (rank === 2) return { icon: '🥈', className: 'bg-gradient-to-r from-gray-300 to-gray-400 text-white' };
+  if (rank === 3) return { icon: '🥉', className: 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' };
+  return { icon: null, className: 'bg-gray-100 text-gray-700' };
+}
+
 export default function StatsPage() {
-  const [stats, setStats] = useState<PlayerStats[]>([]);
+  const [rankings, setRankings] = useState<ScoringRanking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'goals' | 'assists'>('goals');
+  const [displayCount, setDisplayCount] = useState(20);
 
   useEffect(() => {
-    loadStats();
+    loadRankings();
   }, []);
 
-  const loadStats = async () => {
+  const loadRankings = async () => {
     try {
       setLoading(true);
       const supabase = createClient();
 
+      // 現在のシーズンを取得
+      const { data: currentSeason } = await supabase
+        .from('seasons')
+        .select('id')
+        .eq('is_current', true)
+        .single();
+
+      if (!currentSeason) {
+        setError('現在のシーズンが見つかりません');
+        return;
+      }
+
       // 得点ランキングを取得
-      const { data: goalsData, error: goalsError } = await supabase
-        .from('match_events')
-        .select(`
-          player_id,
-          player:players!player_id(
-            id,
-            family_name,
-            given_name,
-            uniform_number,
-            team:teams(id, name, short_name)
-          )
-        `)
-        .eq('event_type', 'goal')
-        .not('player_id', 'is', null);
+      const { data, error: fetchError } = await supabase
+        .from('scoring_rankings')
+        .select('*')
+        .eq('season_id', currentSeason.id)
+        .order('rank', { ascending: true });
 
-      if (goalsError) throw goalsError;
+      if (fetchError) throw fetchError;
 
-      // アシストランキングを取得
-      const { data: assistsData, error: assistsError } = await supabase
-        .from('match_events')
-        .select(`
-          assisted_by_player_id,
-          player:players!assisted_by_player_id(
-            id,
-            family_name,
-            given_name,
-            uniform_number,
-            team:teams(id, name, short_name)
-          )
-        `)
-        .eq('event_type', 'goal')
-        .not('assisted_by_player_id', 'is', null);
-
-      if (assistsError) throw assistsError;
-
-      // イエローカード集計
-      const { data: yellowCardsData, error: yellowCardsError } = await supabase
-        .from('match_events')
-        .select(`
-          player_id,
-          player:players!player_id(
-            id,
-            family_name,
-            given_name,
-            uniform_number,
-            team:teams(id, name, short_name)
-          )
-        `)
-        .eq('event_type', 'yellow_card')
-        .not('player_id', 'is', null);
-
-      if (yellowCardsError) throw yellowCardsError;
-
-      // レッドカード集計
-      const { data: redCardsData, error: redCardsError } = await supabase
-        .from('match_events')
-        .select(`
-          player_id,
-          player:players!player_id(
-            id,
-            family_name,
-            given_name,
-            uniform_number,
-            team:teams(id, name, short_name)
-          )
-        `)
-        .eq('event_type', 'red_card')
-        .not('player_id', 'is', null);
-
-      if (redCardsError) throw redCardsError;
-
-      // データを集計
-      const statsMap = new Map<string, PlayerStats>();
-
-      // ゴールを集計
-      goalsData?.forEach((item: any) => {
-        if (!item.player) return;
-        const playerId = item.player_id;
-        if (!statsMap.has(playerId)) {
-          statsMap.set(playerId, {
-            player_id: playerId,
-            player: item.player,
-            goals: 0,
-            assists: 0,
-            yellow_cards: 0,
-            red_cards: 0,
-          });
-        }
-        statsMap.get(playerId)!.goals++;
-      });
-
-      // アシストを集計
-      assistsData?.forEach((item: any) => {
-        if (!item.player) return;
-        const playerId = item.assisted_by_player_id;
-        if (!statsMap.has(playerId)) {
-          statsMap.set(playerId, {
-            player_id: playerId,
-            player: item.player,
-            goals: 0,
-            assists: 0,
-            yellow_cards: 0,
-            red_cards: 0,
-          });
-        }
-        statsMap.get(playerId)!.assists++;
-      });
-
-      // イエローカードを集計
-      yellowCardsData?.forEach((item: any) => {
-        if (!item.player) return;
-        const playerId = item.player_id;
-        if (!statsMap.has(playerId)) {
-          statsMap.set(playerId, {
-            player_id: playerId,
-            player: item.player,
-            goals: 0,
-            assists: 0,
-            yellow_cards: 0,
-            red_cards: 0,
-          });
-        }
-        statsMap.get(playerId)!.yellow_cards++;
-      });
-
-      // レッドカードを集計
-      redCardsData?.forEach((item: any) => {
-        if (!item.player) return;
-        const playerId = item.player_id;
-        if (!statsMap.has(playerId)) {
-          statsMap.set(playerId, {
-            player_id: playerId,
-            player: item.player,
-            goals: 0,
-            assists: 0,
-            yellow_cards: 0,
-            red_cards: 0,
-          });
-        }
-        statsMap.get(playerId)!.red_cards++;
-      });
-
-      const statsArray = Array.from(statsMap.values());
-      setStats(statsArray);
+      setRankings(data || []);
     } catch (err: any) {
       setError(err.message || 'データの取得に失敗しました');
     } finally {
@@ -193,23 +64,13 @@ export default function StatsPage() {
     }
   };
 
-  const sortedStats = [...stats].sort((a, b) => {
-    if (sortBy === 'goals') {
-      return b.goals - a.goals || b.assists - a.assists;
-    } else {
-      return b.assists - a.assists || b.goals - a.goals;
-    }
-  });
-
-  const topScorers = sortedStats.filter((s) => s.goals > 0).slice(0, 3);
-  const topAssisters = [...stats]
-    .sort((a, b) => b.assists - a.assists || b.goals - a.goals)
-    .filter((s) => s.assists > 0)
-    .slice(0, 3);
+  const topThree = rankings.slice(0, 3);
+  const restRankings = rankings.slice(3, displayCount);
+  const hasMore = rankings.length > displayCount;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
@@ -220,12 +81,12 @@ export default function StatsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={loadStats}
-            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
+            onClick={loadRankings}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
           >
             再読み込み
           </button>
@@ -238,179 +99,161 @@ export default function StatsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-navy">選手統計</h1>
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
             <Link
               href="/dashboard"
-              className="text-sm text-primary hover:text-primary-hover"
+              className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
             >
-              ← ダッシュボード
+              <ArrowLeft size={20} className="text-gray-600" />
             </Link>
-          </div>
-
-          {/* フィルター */}
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={() => setSortBy('goals')}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                sortBy === 'goals'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              得点ランキング
-            </button>
-            <button
-              onClick={() => setSortBy('assists')}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                sortBy === 'assists'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              アシストランキング
-            </button>
+            <div>
+              <h1 className="text-xl font-bold text-navy flex items-center gap-2">
+                <Trophy size={24} className="text-yellow-500" />
+                得点ランキング
+              </h1>
+              <p className="text-xs text-gray-500 mt-0.5">神奈川2部A</p>
+            </div>
           </div>
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* TOP 3 */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {sortBy === 'goals' ? '得点王争い TOP 3' : 'アシスト王争い TOP 3'}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(sortBy === 'goals' ? topScorers : topAssisters).map((stat, index) => (
-              <Link
-                key={stat.player_id}
-                href={`/players/${stat.player.id}`}
-                className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 text-center"
-              >
-                <div className="flex justify-center mb-3">
-                  <span
-                    className={`inline-flex items-center justify-center w-12 h-12 rounded-full text-white font-bold text-lg ${
-                      index === 0
-                        ? 'bg-gradient-to-br from-yellow-400 to-yellow-600'
-                        : index === 1
-                        ? 'bg-gradient-to-br from-gray-300 to-gray-500'
-                        : 'bg-gradient-to-br from-orange-400 to-orange-600'
-                    }`}
-                  >
-                    {index + 1}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {stat.player.family_name} {stat.player.given_name}
-                </h3>
-                {stat.player.uniform_number && (
-                  <p className="text-sm text-gray-600 mb-2">
-                    #{stat.player.uniform_number}
-                  </p>
+      <main className="max-w-3xl mx-auto px-4 py-6">
+        {rankings.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center shadow-sm">
+            <Medal size={48} className="mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-600">まだデータがありません</p>
+            <p className="text-sm text-gray-400 mt-2">
+              SQLを実行してデータを登録してください
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* TOP 3 表彰台 */}
+            <div className="mb-6">
+              <div className="flex items-end justify-center gap-2 sm:gap-4">
+                {/* 2位 */}
+                {topThree[1] && (
+                  <div className="flex flex-col items-center flex-1 max-w-[120px]">
+                    <div className="bg-white rounded-xl shadow-md p-3 w-full text-center mb-2">
+                      <span className="text-2xl">🥈</span>
+                      <p className="font-bold text-sm mt-1 truncate">{topThree[1].player_name}</p>
+                      <p className="text-xs text-gray-500 truncate">{topThree[1].team_name}</p>
+                      <p className="text-xl font-black text-primary mt-2">{topThree[1].goals}</p>
+                      <p className="text-[10px] text-gray-400">ゴール</p>
+                    </div>
+                    <div className="w-full h-16 bg-gradient-to-t from-gray-300 to-gray-200 rounded-t-lg flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">2</span>
+                    </div>
+                  </div>
                 )}
-                <p className="text-xs text-gray-600 mb-4">
-                  {stat.player.team.short_name || stat.player.team.name}
-                </p>
-                <div className="text-3xl font-bold text-primary">
-                  {sortBy === 'goals' ? stat.goals : stat.assists}
-                </div>
-                <p className="text-xs text-gray-600 mt-1">
-                  {sortBy === 'goals' ? 'ゴール' : 'アシスト'}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </div>
 
-        {/* 全ランキング */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-navy-light to-navy">
-            <h2 className="text-lg font-semibold text-white">
-              全選手ランキング
-            </h2>
-          </div>
+                {/* 1位 */}
+                {topThree[0] && (
+                  <div className="flex flex-col items-center flex-1 max-w-[140px] -mb-2">
+                    <div className="bg-white rounded-xl shadow-lg p-4 w-full text-center mb-2 border-2 border-yellow-400">
+                      <span className="text-3xl">🥇</span>
+                      <p className="font-bold text-base mt-1 truncate">{topThree[0].player_name}</p>
+                      <p className="text-xs text-gray-500 truncate">{topThree[0].team_name}</p>
+                      <p className="text-3xl font-black text-primary mt-2">{topThree[0].goals}</p>
+                      <p className="text-xs text-gray-400">ゴール</p>
+                    </div>
+                    <div className="w-full h-24 bg-gradient-to-t from-yellow-500 to-yellow-400 rounded-t-lg flex items-center justify-center">
+                      <span className="text-3xl font-bold text-white">1</span>
+                    </div>
+                  </div>
+                )}
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-center py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    順位
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    選手名
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    チーム
-                  </th>
-                  <th className="text-center py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    ゴール
-                  </th>
-                  <th className="text-center py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    アシスト
-                  </th>
-                  <th className="text-center py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    🟨
-                  </th>
-                  <th className="text-center py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    🟥
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedStats.map((stat, index) => (
-                  <tr
-                    key={stat.player_id}
-                    className={`hover:bg-gray-50 transition-colors ${
-                      index < 3 ? 'bg-blue-50/30' : ''
-                    }`}
-                  >
-                    <td className="py-3 px-4 text-center font-semibold">
-                      {index + 1}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Link
-                        href={`/players/${stat.player.id}`}
-                        className="text-primary hover:text-primary-hover font-medium hover:underline"
-                      >
-                        {stat.player.uniform_number && `#${stat.player.uniform_number} `}
-                        {stat.player.family_name} {stat.player.given_name}
-                      </Link>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      <Link
-                        href={`/teams/${stat.player.team.id}`}
-                        className="hover:text-primary"
-                      >
-                        {stat.player.team.short_name || stat.player.team.name}
-                      </Link>
-                    </td>
-                    <td className="py-3 px-4 text-center font-bold text-primary">
-                      {stat.goals}
-                    </td>
-                    <td className="py-3 px-4 text-center font-medium text-green-600">
-                      {stat.assists}
-                    </td>
-                    <td className="py-3 px-4 text-center text-sm">
-                      {stat.yellow_cards || '-'}
-                    </td>
-                    <td className="py-3 px-4 text-center text-sm">
-                      {stat.red_cards || '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {sortedStats.length === 0 && (
-            <div className="text-center py-12 text-gray-600">
-              <p>まだ記録されたデータがありません</p>
+                {/* 3位 */}
+                {topThree[2] && (
+                  <div className="flex flex-col items-center flex-1 max-w-[120px]">
+                    <div className="bg-white rounded-xl shadow-md p-3 w-full text-center mb-2">
+                      <span className="text-2xl">🥉</span>
+                      <p className="font-bold text-sm mt-1 truncate">{topThree[2].player_name}</p>
+                      <p className="text-xs text-gray-500 truncate">{topThree[2].team_name}</p>
+                      <p className="text-xl font-black text-primary mt-2">{topThree[2].goals}</p>
+                      <p className="text-[10px] text-gray-400">ゴール</p>
+                    </div>
+                    <div className="w-full h-12 bg-gradient-to-t from-orange-400 to-orange-300 rounded-t-lg flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">3</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* 4位以下のリスト */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-navy">
+                <h2 className="text-sm font-semibold text-white">全選手ランキング</h2>
+              </div>
+
+              {/* ヘッダー行 */}
+              <div className="flex items-center px-4 py-2 bg-gray-50 border-b text-xs font-medium text-gray-500">
+                <span className="w-12 text-center">順位</span>
+                <span className="flex-1">選手名</span>
+                <span className="w-20 text-center">ゴール</span>
+              </div>
+
+              {/* ランキング行 */}
+              <div className="divide-y divide-gray-100">
+                {restRankings.map((player, index) => {
+                  const rankDisplay = getRankDisplay(player.rank);
+                  const isEvenRow = index % 2 === 1;
+
+                  return (
+                    <div
+                      key={player.id}
+                      className={`flex items-center px-4 py-3 ${isEvenRow ? 'bg-gray-50/50' : ''}`}
+                    >
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${rankDisplay.className}`}>
+                        {rankDisplay.icon || player.rank}
+                      </span>
+                      <div className="flex-1 ml-3 min-w-0">
+                        <p className="font-medium text-sm text-gray-900 truncate">
+                          {player.player_name}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {player.team_name}
+                        </p>
+                      </div>
+                      <span className="w-20 text-center text-lg font-bold text-primary">
+                        {player.goals}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* もっと見るボタン */}
+              {hasMore && (
+                <div className="px-4 py-4 border-t bg-gray-50">
+                  <button
+                    onClick={() => setDisplayCount(prev => prev + 20)}
+                    className="w-full py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-sm transition-colors"
+                  >
+                    もっと見る（残り{rankings.length - displayCount}人）
+                  </button>
+                </div>
+              )}
+
+              {/* 全員表示後 */}
+              {!hasMore && rankings.length > 20 && (
+                <div className="px-4 py-3 border-t bg-gray-50 text-center">
+                  <p className="text-xs text-gray-500">
+                    全 {rankings.length} 選手を表示中
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 注釈 */}
+            <p className="text-xs text-gray-400 text-center mt-4">
+              ※ データは公式サイト（pl11.jp）に基づく
+            </p>
+          </>
+        )}
       </main>
     </div>
   );

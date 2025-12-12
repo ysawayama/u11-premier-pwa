@@ -10,18 +10,47 @@ import type { MatchWithTeams, Player, Team } from '@/types/database';
 import PageWrapper from '@/components/layout/PageWrapper';
 import { ArrowLeft, Check, Users, Send, ChevronRight, User, Calendar, Hash, Eye, Star } from 'lucide-react';
 
-type RosterStatus = 'none' | 'starter' | 'substitute';
+type RosterStatus = 'none' | 'starter' | 'starter_gk' | 'substitute';
 
 type SelectedPlayer = Player & {
   rosterStatus: RosterStatus;
+  suspensionReason?: string; // 出場停止理由（警告累積2回、または退場）
 };
+
+// 競技規則に基づく定数
+const STARTER_COUNT = 8; // 競技者の数: 8人（うち1人はGK）
+const MIN_TOTAL_PLAYERS = 11; // 試合成立人数: 選手11名以上
 
 // localStorage用のキー生成
 const getRosterStorageKey = (matchId: string) => `match-roster-${matchId}`;
+const getCardHistoryStorageKey = () => `card-history`; // 全試合共通の警告・退場履歴
+
+// 警告・退場履歴データ型
+type CardHistoryEntry = {
+  matchId: string;
+  matchDate: string;
+  playerId: string;
+  playerName: string;
+  cardType: 'yellow_card' | 'red_card';
+  recordedAt: string;
+};
+
+type CardHistory = {
+  entries: CardHistoryEntry[];
+};
+
+// 出場停止情報
+type SuspensionInfo = {
+  playerId: string;
+  reason: string;
+  yellowCount: number;
+  hasRedCard: boolean;
+};
 
 // localStorage用のデータ型
 type StoredRoster = {
-  starters: string[]; // player IDs
+  starters: string[]; // player IDs (FPのみ)
+  starterGK?: string; // GKのplayer ID
   substitutes: string[]; // player IDs
   submittedAt: string;
 };
@@ -44,6 +73,7 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'select' | 'confirm' | 'submitted'>('select');
   const [submitting, setSubmitting] = useState(false);
+  const [suspensions, setSuspensions] = useState<SuspensionInfo[]>([]); // 出場停止選手リスト
 
   // 権限チェック
   useEffect(() => {
@@ -139,30 +169,95 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
 
       if (playersError) throw playersError;
 
+      // 警告・退場履歴から出場停止選手をチェック
+      const storedCardHistory = localStorage.getItem(getCardHistoryStorageKey());
+      const suspensionList: SuspensionInfo[] = [];
+
+      if (storedCardHistory) {
+        try {
+          const cardHistory: CardHistory = JSON.parse(storedCardHistory);
+
+          // 選手ごとにカード履歴を集計
+          const playerCardCounts = new Map<string, { yellow: number; red: number; lastMatchId: string }>();
+
+          cardHistory.entries.forEach((entry) => {
+            const current = playerCardCounts.get(entry.playerId) || { yellow: 0, red: 0, lastMatchId: '' };
+            if (entry.cardType === 'yellow_card') {
+              current.yellow++;
+            } else if (entry.cardType === 'red_card') {
+              current.red++;
+            }
+            current.lastMatchId = entry.matchId;
+            playerCardCounts.set(entry.playerId, current);
+          });
+
+          // 出場停止判定
+          playerCardCounts.forEach((counts, playerId) => {
+            const player = playersData?.find((p) => p.id === playerId);
+            if (!player) return;
+
+            // 退場を受けた選手：次の1試合出場停止
+            // ※現在の試合が退場後の最初の試合かどうかをチェック
+            if (counts.red > 0) {
+              // 退場を受けた試合が直前の試合（= 現在の試合ではない）場合、出場停止
+              if (counts.lastMatchId !== resolvedParams.matchId) {
+                suspensionList.push({
+                  playerId,
+                  reason: '退場による出場停止（次の1試合）',
+                  yellowCount: counts.yellow,
+                  hasRedCard: true,
+                });
+              }
+            }
+            // 警告累積2回：次の1試合出場停止
+            else if (counts.yellow >= 2) {
+              suspensionList.push({
+                playerId,
+                reason: `警告累積${counts.yellow}回による出場停止（次の1試合）`,
+                yellowCount: counts.yellow,
+                hasRedCard: false,
+              });
+            }
+          });
+
+          setSuspensions(suspensionList);
+        } catch {
+          // パースエラーは無視
+        }
+      }
+
       // 既存のロスター情報をlocalStorageから復元
       const storedRoster = localStorage.getItem(getRosterStorageKey(resolvedParams.matchId));
       let starterIds: string[] = [];
+      let starterGKId: string | undefined;
       let substituteIds: string[] = [];
 
       if (storedRoster) {
         try {
           const parsed: StoredRoster = JSON.parse(storedRoster);
           starterIds = parsed.starters || [];
+          starterGKId = parsed.starterGK;
           substituteIds = parsed.substitutes || [];
         } catch {
           // パースエラーは無視
         }
       }
 
-      // 選手に選択状態を追加
-      const playersWithSelection: SelectedPlayer[] = (playersData || []).map((p) => ({
-        ...p,
-        rosterStatus: starterIds.includes(p.id)
-          ? 'starter'
-          : substituteIds.includes(p.id)
-          ? 'substitute'
-          : 'none',
-      }));
+      // 選手に選択状態と出場停止情報を追加
+      const playersWithSelection: SelectedPlayer[] = (playersData || []).map((p) => {
+        const suspension = suspensionList.find((s) => s.playerId === p.id);
+        return {
+          ...p,
+          rosterStatus: p.id === starterGKId
+            ? 'starter_gk'
+            : starterIds.includes(p.id)
+            ? 'starter'
+            : substituteIds.includes(p.id)
+            ? 'substitute'
+            : 'none',
+          suspensionReason: suspension?.reason,
+        };
+      });
       setPlayers(playersWithSelection);
     } catch (err: any) {
       console.error('Error loading data:', err);
@@ -178,14 +273,14 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
       const player = prev.find((p) => p.id === playerId);
       if (!player) return prev;
 
-      const starterCount = prev.filter((p) => p.rosterStatus === 'starter').length;
+      const starterCount = prev.filter((p) => p.rosterStatus === 'starter' || p.rosterStatus === 'starter_gk').length;
 
       // 現在のステータスに応じて次のステータスを決定
       let nextStatus: RosterStatus;
       if (player.rosterStatus === 'none') {
-        // 先発が11人未満なら先発、そうでなければ控えに
-        nextStatus = starterCount < 11 ? 'starter' : 'substitute';
-      } else if (player.rosterStatus === 'starter') {
+        // 先発が8人未満なら先発、そうでなければ控えに
+        nextStatus = starterCount < STARTER_COUNT ? 'starter' : 'substitute';
+      } else if (player.rosterStatus === 'starter' || player.rosterStatus === 'starter_gk') {
         nextStatus = 'substitute';
       } else {
         nextStatus = 'none';
@@ -200,11 +295,31 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
   // 先発に追加
   const setAsStarter = (playerId: string) => {
     setPlayers((prev) => {
-      const starterCount = prev.filter((p) => p.rosterStatus === 'starter').length;
-      if (starterCount >= 11) return prev;
+      const starterCount = prev.filter((p) => p.rosterStatus === 'starter' || p.rosterStatus === 'starter_gk').length;
+      if (starterCount >= STARTER_COUNT) return prev;
 
       return prev.map((p) =>
         p.id === playerId ? { ...p, rosterStatus: 'starter' as RosterStatus } : p
+      );
+    });
+  };
+
+  // GKとして先発に設定
+  const setAsStarterGK = (playerId: string) => {
+    setPlayers((prev) => {
+      // 既にGKがいる場合は、そのGKを通常の先発に変更
+      const prevWithoutGK = prev.map((p) =>
+        p.rosterStatus === 'starter_gk' ? { ...p, rosterStatus: 'starter' as RosterStatus } : p
+      );
+
+      const starterCount = prevWithoutGK.filter((p) => p.rosterStatus === 'starter' || p.rosterStatus === 'starter_gk').length;
+      const isAlreadyStarter = prevWithoutGK.find((p) => p.id === playerId && (p.rosterStatus === 'starter' || p.rosterStatus === 'starter_gk'));
+
+      // 先発でない選手をGKにする場合、先発が満員なら追加できない
+      if (!isAlreadyStarter && starterCount >= STARTER_COUNT) return prev;
+
+      return prevWithoutGK.map((p) =>
+        p.id === playerId ? { ...p, rosterStatus: 'starter_gk' as RosterStatus } : p
       );
     });
   };
@@ -227,14 +342,20 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
     );
   };
 
-  // 先発選手
-  const starters = players.filter((p) => p.rosterStatus === 'starter');
+  // 先発選手（GK含む）
+  const starters = players.filter((p) => p.rosterStatus === 'starter' || p.rosterStatus === 'starter_gk');
+  // GK
+  const starterGK = players.find((p) => p.rosterStatus === 'starter_gk');
   // 控え選手
   const substitutes = players.filter((p) => p.rosterStatus === 'substitute');
   // 未選択選手
   const unselectedPlayers = players.filter((p) => p.rosterStatus === 'none');
   // 選択された全選手
   const selectedPlayers = [...starters, ...substitutes];
+  // 試合成立可否
+  const canEstablishMatch = selectedPlayers.length >= MIN_TOTAL_PLAYERS;
+  // 先発完了（8名かつGKあり）
+  const startersComplete = starters.length === STARTER_COUNT && !!starterGK;
 
   // 生年月日をフォーマット
   const formatBirthDate = (dateStr: string) => {
@@ -256,8 +377,16 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
 
   // 本部提出
   const handleSubmit = async () => {
-    if (starters.length !== 11) {
-      alert('先発メンバーは11人を選択してください');
+    if (starters.length !== STARTER_COUNT) {
+      alert(`先発メンバーは${STARTER_COUNT}人を選択してください`);
+      return;
+    }
+    if (!starterGK) {
+      alert('先発にGKを1名選択してください');
+      return;
+    }
+    if (!canEstablishMatch) {
+      alert('控え選手も含めて11名以上を設定してください');
       return;
     }
 
@@ -265,7 +394,8 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
 
     // localStorageに保存
     const rosterData: StoredRoster = {
-      starters: starters.map((p) => p.id),
+      starters: starters.filter((p) => p.rosterStatus !== 'starter_gk').map((p) => p.id),
+      starterGK: starterGK?.id,
       substitutes: substitutes.map((p) => p.id),
       submittedAt: new Date().toISOString(),
     };
@@ -354,15 +484,24 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
       {viewMode === 'select' && (
         <>
           {/* 選択状態サマリー */}
-          <div className={`mb-4 p-4 rounded-xl ${starters.length === 11 ? 'bg-green-50' : 'bg-blue-50'}`}>
-            <div className="flex items-center justify-between">
+          <div className={`mb-4 p-4 rounded-xl ${startersComplete && canEstablishMatch ? 'bg-green-50' : 'bg-blue-50'}`}>
+            <div className="flex flex-col gap-2">
               <div>
-                <p className={`text-sm font-bold ${starters.length === 11 ? 'text-green-900' : 'text-blue-900'}`}>
-                  先発: {starters.length}/11人 / 控え: {substitutes.length}人
+                <p className={`text-sm font-bold ${startersComplete ? 'text-green-900' : 'text-blue-900'}`}>
+                  先発: {starters.length}/{STARTER_COUNT}人 {starterGK ? '(GK ✓)' : '(GK未選択)'} / 控え: {substitutes.length}人
                 </p>
-                <p className={`text-xs ${starters.length === 11 ? 'text-green-700' : 'text-blue-700'}`}>
-                  {starters.length === 11 ? '✓ 先発選択完了' : `先発をあと${11 - starters.length}人選択してください`}
+                <p className={`text-xs ${startersComplete ? 'text-green-700' : 'text-blue-700'}`}>
+                  {starters.length < STARTER_COUNT
+                    ? `先発をあと${STARTER_COUNT - starters.length}人選択してください`
+                    : !starterGK
+                    ? 'GKを1名選択してください'
+                    : '✓ 先発選択完了'}
                 </p>
+              </div>
+              <div className={`text-xs ${canEstablishMatch ? 'text-green-700' : 'text-orange-600'}`}>
+                {canEstablishMatch
+                  ? `✓ 試合成立（計${selectedPlayers.length}名）`
+                  : `⚠ 試合成立には計${MIN_TOTAL_PLAYERS}名以上必要（現在${selectedPlayers.length}名）`}
               </div>
             </div>
           </div>
@@ -372,40 +511,78 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
             <div className="mb-4">
               <h3 className="text-sm font-bold text-green-700 mb-2 flex items-center gap-1">
                 <Star size={14} className="fill-current" />
-                先発 ({starters.length}/11人)
+                先発 ({starters.length}/{STARTER_COUNT}人)
+                {starterGK && <span className="ml-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 rounded text-[10px]">GK: #{starterGK.uniform_number} {starterGK.family_name}</span>}
               </h3>
+              <p className="text-xs text-gray-500 mb-2">タップで解除、GKボタンでGK設定</p>
               <div className="grid grid-cols-4 gap-2">
                 {starters.map((player) => (
-                  <button
+                  <div
                     key={player.id}
-                    onClick={() => removeFromRoster(player.id)}
-                    className="p-2 bg-green-100 border-2 border-green-500 rounded-xl text-center transition-all relative"
+                    className={`p-2 rounded-xl text-center transition-all relative ${
+                      player.rosterStatus === 'starter_gk'
+                        ? 'bg-yellow-100 border-2 border-yellow-500'
+                        : 'bg-green-100 border-2 border-green-500'
+                    }`}
                   >
+                    {player.rosterStatus === 'starter_gk' && (
+                      <div className="absolute -top-1 -left-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-white">GK</span>
+                      </div>
+                    )}
                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                       <Star size={12} className="text-white fill-current" />
                     </div>
-                    <div className="w-10 h-10 mx-auto mb-1 rounded-full overflow-hidden bg-white">
-                      {player.photo_url ? (
-                        <Image
-                          src={player.photo_url}
-                          alt={player.family_name}
-                          width={40}
-                          height={40}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <User size={20} className="text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs font-bold text-green-800">
-                      {player.uniform_number && `#${player.uniform_number}`}
-                    </p>
-                    <p className="text-[10px] text-green-700 truncate">
-                      {player.family_name}
-                    </p>
-                  </button>
+                    <button
+                      onClick={() => removeFromRoster(player.id)}
+                      className="w-full"
+                    >
+                      <div className="w-10 h-10 mx-auto mb-1 rounded-full overflow-hidden bg-white">
+                        {player.photo_url ? (
+                          <Image
+                            src={player.photo_url}
+                            alt={player.family_name}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <User size={20} className="text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <p className={`text-xs font-bold ${player.rosterStatus === 'starter_gk' ? 'text-yellow-800' : 'text-green-800'}`}>
+                        {player.uniform_number && `#${player.uniform_number}`}
+                      </p>
+                      <p className={`text-[10px] truncate ${player.rosterStatus === 'starter_gk' ? 'text-yellow-700' : 'text-green-700'}`}>
+                        {player.family_name}
+                      </p>
+                    </button>
+                    {/* GKボタン */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (player.rosterStatus === 'starter_gk') {
+                          // GKを解除して通常の先発に
+                          setPlayers((prev) =>
+                            prev.map((p) =>
+                              p.id === player.id ? { ...p, rosterStatus: 'starter' as RosterStatus } : p
+                            )
+                          );
+                        } else {
+                          setAsStarterGK(player.id);
+                        }
+                      }}
+                      className={`mt-1 px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                        player.rosterStatus === 'starter_gk'
+                          ? 'bg-yellow-500 text-white'
+                          : 'bg-gray-200 text-gray-600 hover:bg-yellow-200'
+                      }`}
+                    >
+                      {player.rosterStatus === 'starter_gk' ? 'GK ✓' : 'GK'}
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -452,6 +629,23 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
             </div>
           )}
 
+          {/* 出場停止選手がいる場合の警告 */}
+          {suspensions.length > 0 && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-sm font-bold text-red-700 mb-2">⚠️ 出場停止選手</p>
+              <div className="space-y-1">
+                {suspensions.map((s) => {
+                  const player = players.find((p) => p.id === s.playerId);
+                  return (
+                    <p key={s.playerId} className="text-xs text-red-600">
+                      {player ? `#${player.uniform_number} ${player.family_name}` : '選手'}: {s.reason}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* 未選択選手リスト */}
           <div className="mb-20">
             <h3 className="text-sm font-bold text-gray-700 mb-2">
@@ -461,65 +655,82 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
               タップで先発に追加、長押しで控えに追加
             </p>
             <div className="space-y-2">
-              {unselectedPlayers.map((player) => (
-                <div
-                  key={player.id}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
-                >
-                  {/* 写真 */}
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                    {player.photo_url ? (
-                      <Image
-                        src={player.photo_url}
-                        alt={`${player.family_name} ${player.given_name}`}
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-cover"
-                      />
+              {unselectedPlayers.map((player) => {
+                const isSuspended = !!player.suspensionReason;
+                return (
+                  <div
+                    key={player.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl ${
+                      isSuspended ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                    }`}
+                  >
+                    {/* 写真 */}
+                    <div className={`w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ${isSuspended ? 'bg-red-100 opacity-50' : 'bg-gray-200'}`}>
+                      {player.photo_url ? (
+                        <Image
+                          src={player.photo_url}
+                          alt={`${player.family_name} ${player.given_name}`}
+                          width={48}
+                          height={48}
+                          className={`w-full h-full object-cover ${isSuspended ? 'grayscale' : ''}`}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User size={24} className="text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 選手情報 */}
+                    <div className="flex-1 text-left">
+                      <p className={`text-sm font-bold ${isSuspended ? 'text-red-700 line-through' : 'text-gray-900'}`}>
+                        {player.uniform_number && (
+                          <span className={isSuspended ? 'text-red-500' : 'text-blue-600'}>#{player.uniform_number}</span>
+                        )}
+                        {' '}{player.family_name} {player.given_name}
+                      </p>
+                      {isSuspended ? (
+                        <p className="text-xs text-red-600 font-medium">
+                          🚫 {player.suspensionReason}
+                        </p>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          {player.position && (
+                            <span className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-600">
+                              {player.position}
+                            </span>
+                          )}
+                          <span>{calculateAge(player.date_of_birth)}歳</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* アクションボタン */}
+                    {isSuspended ? (
+                      <div className="text-xs text-red-500 font-medium">
+                        出場不可
+                      </div>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <User size={24} className="text-gray-400" />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setAsStarter(player.id)}
+                          disabled={starters.length >= STARTER_COUNT}
+                          className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                          <Star size={12} className="fill-current" />
+                          先発
+                        </button>
+                        <button
+                          onClick={() => setAsSubstitute(player.id)}
+                          className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-colors"
+                        >
+                          控え
+                        </button>
                       </div>
                     )}
                   </div>
-
-                  {/* 選手情報 */}
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-bold text-gray-900">
-                      {player.uniform_number && (
-                        <span className="text-blue-600 mr-1">#{player.uniform_number}</span>
-                      )}
-                      {player.family_name} {player.given_name}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      {player.position && (
-                        <span className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-600">
-                          {player.position}
-                        </span>
-                      )}
-                      <span>{calculateAge(player.date_of_birth)}歳</span>
-                    </div>
-                  </div>
-
-                  {/* アクションボタン */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setAsStarter(player.id)}
-                      disabled={starters.length >= 11}
-                      className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      <Star size={12} className="fill-current" />
-                      先発
-                    </button>
-                    <button
-                      onClick={() => setAsSubstitute(player.id)}
-                      className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-colors"
-                    >
-                      控え
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -527,11 +738,32 @@ export default function RosterPage({ params }: { params: Promise<{ matchId: stri
           {selectedPlayers.length > 0 && (
             <div className="fixed bottom-20 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t">
               <button
-                onClick={() => setViewMode('confirm')}
-                disabled={starters.length !== 11}
+                onClick={() => {
+                  // バリデーション
+                  if (!canEstablishMatch) {
+                    alert('控え選手も含めて11名以上を設定してください');
+                    return;
+                  }
+                  if (starters.length !== STARTER_COUNT) {
+                    alert(`先発は${STARTER_COUNT}名を選択してください`);
+                    return;
+                  }
+                  if (!starterGK) {
+                    alert('先発にGKを1名選択してください');
+                    return;
+                  }
+                  setViewMode('confirm');
+                }}
+                disabled={!startersComplete || !canEstablishMatch}
                 className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {starters.length !== 11 ? `先発をあと${11 - starters.length}人選択` : 'メンバー確認へ'}
+                {starters.length !== STARTER_COUNT
+                  ? `先発をあと${STARTER_COUNT - starters.length}人選択`
+                  : !starterGK
+                  ? 'GKを選択してください'
+                  : !canEstablishMatch
+                  ? `あと${MIN_TOTAL_PLAYERS - selectedPlayers.length}名選択で試合成立`
+                  : 'メンバー確認へ'}
                 <ChevronRight size={18} />
               </button>
             </div>

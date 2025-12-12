@@ -14,15 +14,124 @@ import {
   Clock,
   Car,
   AlertCircle,
-  CreditCard
+  CreditCard,
+  Cloud,
+  Sun,
+  CloudRain,
+  Thermometer,
+  Wind,
+  Droplets,
+  AlertTriangle,
+  ThermometerSun,
+  CloudLightning,
+  MessageSquare,
+  User,
+  ShieldAlert
 } from 'lucide-react';
 import { getMatchById } from '@/lib/api/matches';
 import { createClient } from '@/lib/supabase/client';
 import type { MatchWithTeams, Player } from '@/types/database';
 
+// 天気予報のデモデータ型
+type WeatherForecast = {
+  date: string;
+  weather: 'sunny' | 'cloudy' | 'rainy' | 'partly_cloudy';
+  temperature: { high: number; low: number };
+  humidity: number;
+  windSpeed: number;
+  precipitation: number; // 降水確率
+};
+
+// 安全アラートの型
+type SafetyAlert = {
+  id: string;
+  type: 'heat' | 'lightning' | 'wind' | 'rain' | 'cold';
+  level: 'info' | 'warning' | 'danger';
+  title: string;
+  message: string;
+  advice: string[];
+};
+
+// 掲示板メッセージの型
+type BoardMessage = {
+  id: string;
+  author: string;
+  role: 'coach' | 'manager' | 'staff';
+  content: string;
+  postedAt: string;
+  isImportant: boolean;
+};
+
+// 天気アイコンを取得
+const getWeatherIcon = (weather: WeatherForecast['weather']) => {
+  switch (weather) {
+    case 'sunny': return <Sun size={32} className="text-yellow-500" />;
+    case 'cloudy': return <Cloud size={32} className="text-gray-400" />;
+    case 'rainy': return <CloudRain size={32} className="text-blue-500" />;
+    case 'partly_cloudy': return <Cloud size={32} className="text-gray-300" />;
+    default: return <Sun size={32} className="text-yellow-500" />;
+  }
+};
+
+// 天気のラベルを取得
+const getWeatherLabel = (weather: WeatherForecast['weather']) => {
+  switch (weather) {
+    case 'sunny': return '晴れ';
+    case 'cloudy': return '曇り';
+    case 'rainy': return '雨';
+    case 'partly_cloudy': return '晴れ時々曇り';
+    default: return '晴れ';
+  }
+};
+
+// アラートレベルに応じた色を取得
+const getAlertColors = (level: SafetyAlert['level']) => {
+  switch (level) {
+    case 'danger': return { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-800', icon: 'text-red-600' };
+    case 'warning': return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800', icon: 'text-yellow-600' };
+    case 'info': return { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-800', icon: 'text-blue-600' };
+    default: return { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-800', icon: 'text-gray-600' };
+  }
+};
+
+// アラートタイプに応じたアイコンを取得
+const getAlertIcon = (type: SafetyAlert['type']) => {
+  switch (type) {
+    case 'heat': return <ThermometerSun size={20} />;
+    case 'lightning': return <CloudLightning size={20} />;
+    case 'wind': return <Wind size={20} />;
+    case 'rain': return <CloudRain size={20} />;
+    case 'cold': return <Thermometer size={20} />;
+    default: return <AlertTriangle size={20} />;
+  }
+};
+
+// 役割のラベルを取得
+const getRoleLabel = (role: BoardMessage['role']) => {
+  switch (role) {
+    case 'coach': return '監督';
+    case 'manager': return 'マネージャー';
+    case 'staff': return '運営スタッフ';
+    default: return 'スタッフ';
+  }
+};
+
+// 役割に応じた色を取得
+const getRoleColor = (role: BoardMessage['role']) => {
+  switch (role) {
+    case 'coach': return 'bg-red-100 text-red-700';
+    case 'manager': return 'bg-blue-100 text-blue-700';
+    case 'staff': return 'bg-green-100 text-green-700';
+    default: return 'bg-gray-100 text-gray-700';
+  }
+};
+
 /**
  * 試合準備専用画面
  * - 会場情報・地図
+ * - 天気予報
+ * - 安全アラート
+ * - チーム内掲示板
  * - 持ち物チェックリスト
  * - 選手証表示
  * - 注意事項
@@ -48,6 +157,73 @@ export default function MatchPreparePage() {
 
   // 選手証モーダル
   const [showPlayerCard, setShowPlayerCard] = useState(false);
+
+  // 天気予報のデモデータ（12月7日の天気）
+  const weatherForecast: WeatherForecast = {
+    date: '2025-12-07',
+    weather: 'partly_cloudy',
+    temperature: { high: 14, low: 6 },
+    humidity: 45,
+    windSpeed: 3.5,
+    precipitation: 10,
+  };
+
+  // 安全アラートのデモデータ
+  // 季節に応じてアラートを変える（12月なので寒さ注意）
+  const safetyAlerts: SafetyAlert[] = [
+    {
+      id: 'cold-1',
+      type: 'cold',
+      level: 'info',
+      title: '気温低下注意',
+      message: '当日の最低気温は6℃の予報です。防寒対策をしっかり行いましょう。',
+      advice: [
+        'ベンチコートやウィンドブレーカーを持参',
+        'カイロを用意（ポケットに入れておく）',
+        'ウォーミングアップを十分に行う',
+        '試合後はすぐに着替えて体を冷やさない',
+      ],
+    },
+    {
+      id: 'wind-1',
+      type: 'wind',
+      level: 'info',
+      title: '風の影響',
+      message: '午後から風が強まる可能性があります。',
+      advice: [
+        'テントや荷物が飛ばされないよう注意',
+        'ロングボールの軌道に影響あり',
+      ],
+    },
+  ];
+
+  // チーム内掲示板のデモデータ
+  const boardMessages: BoardMessage[] = [
+    {
+      id: 'msg-1',
+      author: '田中コーチ',
+      role: 'coach',
+      content: '最終節です！今シーズンの集大成、全員で勝ちに行きましょう。集合時間は13:00、いつもより早めです。遅刻厳禁！',
+      postedAt: '2025-12-06T20:00:00+09:00',
+      isImportant: true,
+    },
+    {
+      id: 'msg-2',
+      author: '鈴木マネージャー',
+      role: 'manager',
+      content: 'ユニフォームは「白」です。お間違えなく！また、駐車場は台数制限があるため、できるだけ乗り合わせでお願いします。',
+      postedAt: '2025-12-06T18:30:00+09:00',
+      isImportant: true,
+    },
+    {
+      id: 'msg-3',
+      author: '山田（運営）',
+      role: 'staff',
+      content: '本部テントの設営を手伝える保護者の方、12:30に集合場所にお集まりください。',
+      postedAt: '2025-12-05T21:00:00+09:00',
+      isImportant: false,
+    },
+  ];
 
   useEffect(() => {
     loadData();
@@ -99,7 +275,7 @@ export default function MatchPreparePage() {
                 id: playerData.team_id,
                 name: '大豆戸FC',
                 short_name: '大豆戸',
-                logo_url: null,
+                logo_url: '/images/teams/omamedofc.png',
                 prefecture_id: null,
                 founded_year: null,
                 home_ground: null,
@@ -113,7 +289,7 @@ export default function MatchPreparePage() {
                 id: 'demo-azamino',
                 name: 'あざみ野FC',
                 short_name: 'あざみ野',
-                logo_url: null,
+                logo_url: '/images/teams/azamino-fc.png',
                 prefecture_id: null,
                 founded_year: null,
                 home_ground: null,
@@ -159,7 +335,7 @@ export default function MatchPreparePage() {
               id: 'demo-mamedo',
               name: '大豆戸FC',
               short_name: '大豆戸',
-              logo_url: null,
+              logo_url: '/images/teams/omamedofc.png',
               prefecture_id: null,
               founded_year: null,
               home_ground: null,
@@ -173,7 +349,7 @@ export default function MatchPreparePage() {
               id: 'demo-azamino',
               name: 'あざみ野FC',
               short_name: 'あざみ野',
-              logo_url: null,
+              logo_url: '/images/teams/azamino-fc.png',
               prefecture_id: null,
               founded_year: null,
               home_ground: null,
@@ -312,6 +488,13 @@ export default function MatchPreparePage() {
             background: 'linear-gradient(135deg, var(--color-navy) 0%, #1e3a5f 100%)',
           }}
         >
+          {/* 次のリーグ公式戦ラベル */}
+          <div className="absolute top-4 left-4">
+            <span className="text-xs font-medium text-white/60 bg-white/10 px-3 py-1 rounded-full">
+              次のリーグ公式戦
+            </span>
+          </div>
+
           {/* カウントダウンバッジ */}
           <div className="absolute top-4 right-4">
             <div className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold ${getCountdownColor()}`}>
@@ -321,7 +504,7 @@ export default function MatchPreparePage() {
           </div>
 
           {/* 日時 */}
-          <div className="mb-6">
+          <div className="mb-6 pt-6">
             <p className="text-white/70 text-sm mb-1">
               {new Date(match.match_date).toLocaleDateString('ja-JP', {
                 year: 'numeric',
@@ -439,6 +622,162 @@ export default function MatchPreparePage() {
               </div>
             )}
           </div>
+        </section>
+
+        {/* 当日天気予報 */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Cloud size={18} className="text-blue-500" />
+            当日の天気予報
+          </h2>
+
+          <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl">
+            {/* 天気アイコン */}
+            <div className="flex flex-col items-center">
+              {getWeatherIcon(weatherForecast.weather)}
+              <span className="text-sm font-medium text-gray-700 mt-1">
+                {getWeatherLabel(weatherForecast.weather)}
+              </span>
+            </div>
+
+            {/* 気温 */}
+            <div className="flex-1">
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-gray-900">
+                  {weatherForecast.temperature.high}°
+                </span>
+                <span className="text-lg text-gray-400">/</span>
+                <span className="text-lg text-gray-500">
+                  {weatherForecast.temperature.low}°
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">最高/最低気温</p>
+            </div>
+
+            {/* 詳細情報 */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div className="flex items-center gap-1.5">
+                <Droplets size={14} className="text-blue-400" />
+                <span className="text-gray-600">{weatherForecast.precipitation}%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Wind size={14} className="text-gray-400" />
+                <span className="text-gray-600">{weatherForecast.windSpeed}m/s</span>
+              </div>
+              <div className="flex items-center gap-1.5 col-span-2">
+                <Thermometer size={14} className="text-orange-400" />
+                <span className="text-gray-600">湿度 {weatherForecast.humidity}%</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-3 text-center">
+            ※ 天気予報は変わる可能性があります。当日朝にも確認してください。
+          </p>
+        </section>
+
+        {/* 安全アラート */}
+        {safetyAlerts.length > 0 && (
+          <section className="bg-white rounded-2xl p-5 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <ShieldAlert size={18} className="text-orange-500" />
+              安全情報・注意事項
+            </h2>
+
+            <div className="space-y-3">
+              {safetyAlerts.map((alert) => {
+                const colors = getAlertColors(alert.level);
+                return (
+                  <div
+                    key={alert.id}
+                    className={`${colors.bg} ${colors.border} border rounded-xl p-4`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`${colors.icon} mt-0.5`}>
+                        {getAlertIcon(alert.type)}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`font-bold ${colors.text}`}>{alert.title}</h3>
+                        <p className={`text-sm mt-1 ${colors.text} opacity-90`}>
+                          {alert.message}
+                        </p>
+                        {alert.advice.length > 0 && (
+                          <ul className="mt-3 space-y-1">
+                            {alert.advice.map((advice, index) => (
+                              <li
+                                key={index}
+                                className={`text-sm ${colors.text} opacity-80 flex items-start gap-2`}
+                              >
+                                <span className="mt-1.5 w-1 h-1 rounded-full bg-current flex-shrink-0" />
+                                {advice}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* チーム内掲示板 */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <MessageSquare size={18} className="text-green-500" />
+            チーム連絡板
+          </h2>
+
+          <div className="space-y-3">
+            {boardMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`p-4 rounded-xl border ${
+                  msg.isImportant
+                    ? 'bg-orange-50 border-orange-200'
+                    : 'bg-gray-50 border-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <User size={16} className="text-gray-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900 text-sm">
+                        {msg.author}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleColor(msg.role)}`}>
+                        {getRoleLabel(msg.role)}
+                      </span>
+                      {msg.isImportant && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                          重要
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {new Date(msg.postedAt).toLocaleDateString('ja-JP', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap pl-10">
+                  {msg.content}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <button className="w-full mt-4 py-3 text-sm font-medium text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transition-colors">
+            すべての連絡を見る
+          </button>
         </section>
 
         {/* 持ち物チェックリスト */}
@@ -579,10 +918,10 @@ export default function MatchPreparePage() {
         {/* 試合詳細へのリンク */}
         <div className="pt-4">
           <Link
-            href={`/matches/${matchId}`}
-            className="block text-center text-sm text-gray-500 hover:text-gray-700"
+            href={`/matches/${matchId}/opponent`}
+            className="block text-center text-sm text-primary font-medium hover:underline"
           >
-            試合詳細を見る →
+            対戦相手について知る →
           </Link>
         </div>
       </main>

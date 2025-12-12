@@ -10,11 +10,19 @@ import type { MatchWithTeams, Player, Team, MatchEvent, EventType } from '@/type
 import PageWrapper from '@/components/layout/PageWrapper';
 import { ArrowLeft, Play, Pause, RotateCcw, Target, Square, AlertTriangle, RefreshCw, Check, User, X, Save, Clock, Users, AlertCircle } from 'lucide-react';
 
+// 3ピリオド制の定数
+const PERIOD_DURATION = 15 * 60; // 15分 = 900秒
+const HALF_PERIOD = 7.5 * 60; // 7分30秒でエンド交代
+const BREAK1_DURATION = 2 * 60; // 1stピリオド後2分休憩
+const BREAK2_DURATION = 4 * 60; // 2ndピリオド後4分休憩
+
+type Period = '1st' | 'break1' | '2nd' | 'break2' | '3rd' | 'finished';
+
 type GameEvent = {
   id: string;
   type: EventType;
   minute: number;
-  half: 'first' | 'second';
+  period: '1st' | '2nd' | '3rd';
   teamId: string;
   playerId?: string;
   playerName?: string;
@@ -26,16 +34,52 @@ type GameEvent = {
 type PlayerWithStatus = Player & {
   isStarter: boolean;
   isOnField: boolean; // 現在出場中
+  periodsPlayed: number[]; // 出場したピリオド番号 (1, 2, 3)
 };
 
 // localStorage用のキー生成
 const getRosterStorageKey = (matchId: string) => `match-roster-${matchId}`;
+const getMatchRecordStorageKey = (matchId: string) => `match-record-${matchId}`;
+const getCardHistoryStorageKey = () => `card-history`; // 全試合共通の警告・退場履歴
 
 // localStorage用のデータ型
 type StoredRoster = {
   starters: string[]; // player IDs
+  starterGK?: string; // GKのplayer ID
   substitutes: string[]; // player IDs
   submittedAt: string;
+};
+
+// 試合記録データ型
+type StoredMatchRecord = {
+  recorderName: string; // 記録者名
+  refereeName: string; // 主審名
+  savedAt: string;
+};
+
+// 警告・退場履歴データ型
+type CardHistoryEntry = {
+  matchId: string;
+  matchDate: string;
+  playerId: string;
+  playerName: string;
+  cardType: 'yellow_card' | 'red_card';
+  recordedAt: string;
+};
+
+type CardHistory = {
+  entries: CardHistoryEntry[];
+};
+
+// 選手の出場時間追跡
+type PlayerPlayTime = {
+  playerId: string;
+  periodTimes: {
+    1: number; // 1stピリオドの出場秒数
+    2: number; // 2ndピリオドの出場秒数
+    3: number; // 3rdピリオドの出場秒数
+  };
+  enteredAt: number | null; // 現在出場中の場合、入った時の経過秒数
 };
 
 /**
@@ -58,16 +102,19 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
   const [error, setError] = useState<string | null>(null);
   const [rosterNotFound, setRosterNotFound] = useState(false);
 
-  // タイマー状態
+  // タイマー状態（3ピリオド制）
   const [timerRunning, setTimerRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [half, setHalf] = useState<'first' | 'halftime' | 'second' | 'finished'>('first');
-  const [halftimeSeconds, setHalftimeSeconds] = useState(0);
+  const [period, setPeriod] = useState<Period>('1st');
+  const [breakSeconds, setBreakSeconds] = useState(0);
+  const [currentPeriodNumber, setCurrentPeriodNumber] = useState(1); // 1, 2, 3
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // スコア
-  const [homeScore, setHomeScore] = useState(0);
-  const [awayScore, setAwayScore] = useState(0);
+  // スコア（各ピリオドと合計）
+  const [homeScores, setHomeScores] = useState({ '1st': 0, '2nd': 0, '3rd': 0 });
+  const [awayScores, setAwayScores] = useState({ '1st': 0, '2nd': 0, '3rd': 0 });
+  const homeTotal = homeScores['1st'] + homeScores['2nd'] + homeScores['3rd'];
+  const awayTotal = awayScores['1st'] + awayScores['2nd'] + awayScores['3rd'];
 
   // イベント
   const [events, setEvents] = useState<GameEvent[]>([]);
@@ -83,6 +130,18 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // 試合開始前の設定
+  const [showSetupModal, setShowSetupModal] = useState(true);
+  const [recorderName, setRecorderName] = useState('');
+  const [refereeName, setRefereeName] = useState('');
+  const [setupComplete, setSetupComplete] = useState(false);
+
+  // 出場時間追跡
+  const [playerPlayTimes, setPlayerPlayTimes] = useState<PlayerPlayTime[]>([]);
+
+  // GK情報
+  const [starterGKId, setStarterGKId] = useState<string | null>(null);
+
   // 権限チェック
   useEffect(() => {
     if (user && user.user_type !== 'coach' && user.user_type !== 'admin') {
@@ -94,12 +153,12 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
     loadData();
   }, [resolvedParams.matchId]);
 
-  // タイマー処理
+  // タイマー処理（3ピリオド制）
   useEffect(() => {
     if (timerRunning) {
       timerRef.current = setInterval(() => {
-        if (half === 'halftime') {
-          setHalftimeSeconds((prev) => prev + 1);
+        if (period === 'break1' || period === 'break2') {
+          setBreakSeconds((prev) => prev + 1);
         } else {
           setElapsedSeconds((prev) => prev + 1);
         }
@@ -114,7 +173,7 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
         clearInterval(timerRef.current);
       }
     };
-  }, [timerRunning, half]);
+  }, [timerRunning, period]);
 
   const loadData = async () => {
     try {
@@ -173,8 +232,7 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
             away_team: opponentTeam,
           };
           setMatch(demoMatch);
-          setHomeScore(0);
-          setAwayScore(0);
+          // スコアは初期状態のままで良い（homeScores/awayScoresは{ '1st': 0, '2nd': 0, '3rd': 0 }で初期化済み）
         }
       } else {
         // 通常の試合情報を取得
@@ -190,8 +248,13 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
 
         if (matchError) throw matchError;
         setMatch(matchData as MatchWithTeams);
-        setHomeScore(matchData.home_score || 0);
-        setAwayScore(matchData.away_score || 0);
+        // 既存のスコアがあれば1stピリオドに設定（詳細な3ピリオドスコアは後で個別に取得する必要あり）
+        if (matchData.home_score) {
+          setHomeScores((prev) => ({ ...prev, '1st': matchData.home_score || 0 }));
+        }
+        if (matchData.away_score) {
+          setAwayScores((prev) => ({ ...prev, '1st': matchData.away_score || 0 }));
+        }
 
         // 既存のイベントを取得（通常の試合のみ）
         const { data: eventsData } = await supabase
@@ -235,21 +298,55 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
           try {
             const parsed: StoredRoster = JSON.parse(storedRoster);
             const starterIds = parsed.starters || [];
+            const gkId = parsed.starterGK;
             const substituteIds = parsed.substitutes || [];
 
-            // 選手にステータスを設定
+            // GK情報を保存
+            if (gkId) {
+              setStarterGKId(gkId);
+            }
+
+            // 先発IDにGKも含める
+            const allStarterIds = gkId ? [...starterIds, gkId] : starterIds;
+
+            // 選手にステータスを設定（3ピリオド制対応）
             const playersWithStatus: PlayerWithStatus[] = playersData
-              .filter((p) => starterIds.includes(p.id) || substituteIds.includes(p.id))
+              .filter((p) => allStarterIds.includes(p.id) || substituteIds.includes(p.id))
               .map((p) => ({
                 ...p,
-                isStarter: starterIds.includes(p.id),
-                isOnField: starterIds.includes(p.id), // 先発は最初から出場中
+                isStarter: allStarterIds.includes(p.id),
+                isOnField: allStarterIds.includes(p.id), // 先発は最初から出場中
+                periodsPlayed: allStarterIds.includes(p.id) ? [1] : [], // 先発は1stピリオドに出場
               }));
 
             setPlayers(playersWithStatus);
+
+            // 出場時間追跡を初期化
+            const initialPlayTimes: PlayerPlayTime[] = playersWithStatus.map((p) => ({
+              playerId: p.id,
+              periodTimes: { 1: 0, 2: 0, 3: 0 },
+              enteredAt: allStarterIds.includes(p.id) ? 0 : null, // 先発は0秒から出場開始
+            }));
+            setPlayerPlayTimes(initialPlayTimes);
           } catch {
             setRosterNotFound(true);
             setPlayers([]);
+          }
+        }
+
+        // 試合記録設定を復元
+        const storedRecord = localStorage.getItem(getMatchRecordStorageKey(resolvedParams.matchId));
+        if (storedRecord) {
+          try {
+            const recordData: StoredMatchRecord = JSON.parse(storedRecord);
+            setRecorderName(recordData.recorderName || '');
+            setRefereeName(recordData.refereeName || '');
+            if (recordData.recorderName && recordData.refereeName) {
+              setSetupComplete(true);
+              setShowSetupModal(false);
+            }
+          } catch {
+            // パースエラーは無視
           }
         }
       }
@@ -268,10 +365,34 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // 現在の分数を取得
+  // 現在の分数を取得（3ピリオド制）
   const getCurrentMinute = () => {
-    const baseMinute = half === 'second' ? 20 : 0;
-    return baseMinute + Math.floor(elapsedSeconds / 60);
+    // 各ピリオドは0分からスタート、15分まで
+    return Math.floor(elapsedSeconds / 60);
+  };
+
+  // 現在のピリオド名を取得
+  const getPeriodName = (p: Period): string => {
+    switch (p) {
+      case '1st': return '1st';
+      case 'break1': return '1st後インターバル';
+      case '2nd': return '2nd';
+      case 'break2': return '2nd後インターバル';
+      case '3rd': return '3rd';
+      case 'finished': return '試合終了';
+    }
+  };
+
+  // ピリオドの色を取得
+  const getPeriodColor = (p: Period): string => {
+    switch (p) {
+      case '1st': return 'bg-green-500';
+      case 'break1': return 'bg-yellow-500 text-yellow-900';
+      case '2nd': return 'bg-blue-500';
+      case 'break2': return 'bg-yellow-500 text-yellow-900';
+      case '3rd': return 'bg-orange-500';
+      case 'finished': return 'bg-gray-500';
+    }
   };
 
   // タイマー制御
@@ -281,32 +402,185 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
 
   const resetTimer = () => {
     setTimerRunning(false);
-    if (half === 'halftime') {
-      setHalftimeSeconds(0);
+    if (period === 'break1' || period === 'break2') {
+      setBreakSeconds(0);
     } else {
       setElapsedSeconds(0);
     }
   };
 
-  // 前半終了 → ハーフタイムへ
-  const endFirstHalf = () => {
-    setTimerRunning(false);
-    setHalf('halftime');
-    setHalftimeSeconds(0);
-    setTimeout(() => setTimerRunning(true), 100);
+  // 出場時間を集計（ピリオド終了時）
+  const calculatePlayTime = (periodNumber: 1 | 2 | 3) => {
+    setPlayerPlayTimes(prev => prev.map(pt => {
+      if (pt.enteredAt !== null) {
+        // 出場中の選手の時間を確定
+        const playedTime = elapsedSeconds - pt.enteredAt;
+        return {
+          ...pt,
+          periodTimes: {
+            ...pt.periodTimes,
+            [periodNumber]: pt.periodTimes[periodNumber] + playedTime
+          },
+          enteredAt: null // ピリオド終了でリセット
+        };
+      }
+      return pt;
+    }));
   };
 
-  // 後半スタート
-  const startSecondHalf = () => {
+  // 選手の総出場時間を取得（秒）
+  const getPlayerTotalPlayTime = (playerId: string): number => {
+    const pt = playerPlayTimes.find(p => p.playerId === playerId);
+    if (!pt) return 0;
+    return pt.periodTimes[1] + pt.periodTimes[2] + pt.periodTimes[3];
+  };
+
+  // ピリオド終了 → インターバルへ
+  const endPeriod = () => {
+    setTimerRunning(false);
+
+    if (period === '1st') {
+      // 出場時間を集計
+      calculatePlayTime(1);
+
+      setPeriod('break1');
+      setBreakSeconds(0);
+      // 出場中の選手の1stピリオド出場を確定
+      setPlayers(prev => prev.map(p => ({
+        ...p,
+        periodsPlayed: p.isOnField && !p.periodsPlayed.includes(1)
+          ? [...p.periodsPlayed, 1]
+          : p.periodsPlayed
+      })));
+    } else if (period === '2nd') {
+      // 出場時間を集計
+      calculatePlayTime(2);
+
+      setPeriod('break2');
+      setBreakSeconds(0);
+      // 出場中の選手の2ndピリオド出場を確定
+      setPlayers(prev => prev.map(p => ({
+        ...p,
+        periodsPlayed: p.isOnField && !p.periodsPlayed.includes(2)
+          ? [...p.periodsPlayed, 2]
+          : p.periodsPlayed
+      })));
+
+      // 2nd終了時のチェック：未出場選手と出場時間不足選手
+      setTimeout(() => {
+        checkPlayTimeAlerts();
+      }, 500);
+    } else if (period === '3rd') {
+      // 出場時間を集計
+      calculatePlayTime(3);
+
+      // 出場中の選手の3rdピリオド出場を確定
+      setPlayers(prev => prev.map(p => ({
+        ...p,
+        periodsPlayed: p.isOnField && !p.periodsPlayed.includes(3)
+          ? [...p.periodsPlayed, 3]
+          : p.periodsPlayed
+      })));
+      setPeriod('finished');
+    }
+  };
+
+  // 2nd終了時の出場時間チェック
+  const checkPlayTimeAlerts = () => {
+    const alerts: string[] = [];
+    const requiredTime = PERIOD_DURATION; // 最低1ピリオド分 = 15分 = 900秒
+
+    players.forEach(player => {
+      const totalTime = getPlayerTotalPlayTime(player.id);
+      const isGK = player.id === starterGKId;
+
+      if (totalTime < requiredTime && !isGK) {
+        const remainingTime = requiredTime - totalTime;
+        const remainingMins = Math.ceil(remainingTime / 60);
+        alerts.push(`${player.family_name}選手が、このピリオドであと${remainingMins}分出場する必要があります`);
+      }
+    });
+
+    if (alerts.length > 0) {
+      alert(alerts.join('\n'));
+    }
+  };
+
+  // 3rd開始前の未出場選手チェック
+  const checkUnplayedPlayersAlert = (): boolean => {
+    const unplayedPlayers = players.filter(p => p.periodsPlayed.length === 0);
+
+    if (unplayedPlayers.length > 0) {
+      const names = unplayedPlayers.map(p => p.family_name).join('、');
+      alert(`${names}選手がまだ1ピリオドも出場していないので、次のピリオドで出場してください`);
+      return true; // アラートを表示した
+    }
+    return false;
+  };
+
+  // 次のピリオドをスタート
+  const startNextPeriod = () => {
     setTimerRunning(false);
     setElapsedSeconds(0);
-    setHalf('second');
+    setBreakSeconds(0);
+
+    if (period === 'break1') {
+      setPeriod('2nd');
+      setCurrentPeriodNumber(2);
+
+      // 出場中の選手の出場時間追跡を開始
+      setPlayerPlayTimes(prev => prev.map(pt => {
+        const player = players.find(p => p.id === pt.playerId);
+        if (player?.isOnField) {
+          return { ...pt, enteredAt: 0 };
+        }
+        return pt;
+      }));
+
+      // 現在出場中の選手に2ndピリオドを記録
+      setPlayers(prev => prev.map(p => ({
+        ...p,
+        periodsPlayed: p.isOnField && !p.periodsPlayed.includes(2)
+          ? [...p.periodsPlayed, 2]
+          : p.periodsPlayed
+      })));
+    } else if (period === 'break2') {
+      // 3rd開始前に未出場選手をチェック
+      checkUnplayedPlayersAlert();
+
+      setPeriod('3rd');
+      setCurrentPeriodNumber(3);
+
+      // 出場中の選手の出場時間追跡を開始
+      setPlayerPlayTimes(prev => prev.map(pt => {
+        const player = players.find(p => p.id === pt.playerId);
+        if (player?.isOnField) {
+          return { ...pt, enteredAt: 0 };
+        }
+        return pt;
+      }));
+
+      // 現在出場中の選手に3rdピリオドを記録
+      setPlayers(prev => prev.map(p => ({
+        ...p,
+        periodsPlayed: p.isOnField && !p.periodsPlayed.includes(3)
+          ? [...p.periodsPlayed, 3]
+          : p.periodsPlayed
+      })));
+    }
   };
 
   // 試合終了
   const endMatch = () => {
     setTimerRunning(false);
-    setHalf('finished');
+    // 3rdピリオドの出場を確定
+    setPlayers(prev => prev.map(p => ({
+      ...p,
+      periodsPlayed: p.isOnField && !p.periodsPlayed.includes(3)
+        ? [...p.periodsPlayed, 3]
+        : p.periodsPlayed
+    })));
+    setPeriod('finished');
   };
 
   // 出場中の選手リスト
@@ -324,18 +598,26 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
     setShowEventModal(true);
   };
 
-  // イベントを追加
+  // 現在のピリオドを取得（イベント記録用）
+  const getCurrentPeriodForEvent = (): '1st' | '2nd' | '3rd' => {
+    if (period === '1st' || period === 'break1') return '1st';
+    if (period === '2nd' || period === 'break2') return '2nd';
+    return '3rd';
+  };
+
+  // イベントを追加（3ピリオド制対応）
   const addEvent = useCallback(() => {
     if (!eventType || !selectedTeamId) return;
 
     const player = players.find((p) => p.id === selectedPlayerId);
     const playerOut = players.find((p) => p.id === selectedPlayerOutId);
+    const currentPeriod = getCurrentPeriodForEvent();
 
     const newEvent: GameEvent = {
       id: `temp-${Date.now()}`,
       type: eventType,
       minute: getCurrentMinute(),
-      half: half === 'second' ? 'second' : 'first',
+      period: currentPeriod,
       teamId: selectedTeamId,
       playerId: selectedPlayerId || undefined,
       playerName: player ? `${player.family_name} ${player.given_name}` : undefined,
@@ -343,25 +625,60 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
       playerOutName: playerOut ? `${playerOut.family_name} ${playerOut.given_name}` : undefined,
     };
 
-    setEvents((prev) => [...prev, newEvent].sort((a, b) => a.minute - b.minute));
+    setEvents((prev) => [...prev, newEvent].sort((a, b) => {
+      // ピリオド順 → 分順でソート
+      const periodOrder = { '1st': 1, '2nd': 2, '3rd': 3 };
+      if (periodOrder[a.period] !== periodOrder[b.period]) {
+        return periodOrder[a.period] - periodOrder[b.period];
+      }
+      return a.minute - b.minute;
+    }));
 
-    // スコア更新
+    // スコア更新（ピリオド別）
     if (eventType === 'goal') {
       if (match) {
         if (selectedTeamId === match.home_team_id) {
-          setHomeScore((prev) => prev + 1);
+          setHomeScores(prev => ({ ...prev, [currentPeriod]: prev[currentPeriod] + 1 }));
         } else {
-          setAwayScore((prev) => prev + 1);
+          setAwayScores(prev => ({ ...prev, [currentPeriod]: prev[currentPeriod] + 1 }));
         }
       }
     }
 
-    // 交代処理：出場状態を更新
+    // 交代処理：出場状態を更新 + ピリオド出場記録 + 出場時間追跡
     if (eventType === 'substitution' && selectedPlayerId && selectedPlayerOutId) {
+      // 出場時間追跡を更新
+      setPlayerPlayTimes(prev => prev.map(pt => {
+        if (pt.playerId === selectedPlayerOutId && pt.enteredAt !== null) {
+          // 退場する選手の出場時間を確定
+          const playedTime = elapsedSeconds - pt.enteredAt;
+          return {
+            ...pt,
+            periodTimes: {
+              ...pt.periodTimes,
+              [currentPeriodNumber as 1 | 2 | 3]: pt.periodTimes[currentPeriodNumber as 1 | 2 | 3] + playedTime
+            },
+            enteredAt: null
+          };
+        }
+        if (pt.playerId === selectedPlayerId) {
+          // 入場する選手の出場開始時間を記録
+          return { ...pt, enteredAt: elapsedSeconds };
+        }
+        return pt;
+      }));
+
       setPlayers((prev) =>
         prev.map((p) => {
           if (p.id === selectedPlayerId) {
-            return { ...p, isOnField: true };
+            // 入る選手：出場中にして、現在ピリオドを記録
+            return {
+              ...p,
+              isOnField: true,
+              periodsPlayed: p.periodsPlayed.includes(currentPeriodNumber)
+                ? p.periodsPlayed
+                : [...p.periodsPlayed, currentPeriodNumber]
+            };
           }
           if (p.id === selectedPlayerOutId) {
             return { ...p, isOnField: false };
@@ -371,25 +688,50 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
       );
     }
 
+    // 警告・退場の記録を保存
+    if ((eventType === 'yellow_card' || eventType === 'red_card') && player && match) {
+      const cardEntry: CardHistoryEntry = {
+        matchId: match.id,
+        matchDate: match.match_date,
+        playerId: player.id,
+        playerName: `${player.family_name} ${player.given_name}`,
+        cardType: eventType,
+        recordedAt: new Date().toISOString(),
+      };
+
+      // localStorageに保存
+      const storedHistory = localStorage.getItem(getCardHistoryStorageKey());
+      let history: CardHistory = { entries: [] };
+      if (storedHistory) {
+        try {
+          history = JSON.parse(storedHistory);
+        } catch {
+          // パースエラーは無視
+        }
+      }
+      history.entries.push(cardEntry);
+      localStorage.setItem(getCardHistoryStorageKey(), JSON.stringify(history));
+    }
+
     setShowEventModal(false);
     setEventType(null);
     setSelectedTeamId(null);
     setSelectedPlayerId(null);
     setSelectedPlayerOutId(null);
-  }, [eventType, selectedTeamId, selectedPlayerId, selectedPlayerOutId, players, match, half]);
+  }, [eventType, selectedTeamId, selectedPlayerId, selectedPlayerOutId, players, match, period, currentPeriodNumber]);
 
-  // イベント削除
+  // イベント削除（3ピリオド制対応）
   const removeEvent = (eventId: string) => {
     const event = events.find((e) => e.id === eventId);
     if (!event) return;
 
     if (event.type === 'goal') {
-      // スコアを戻す
+      // スコアを戻す（ピリオド別）
       if (match) {
         if (event.teamId === match.home_team_id) {
-          setHomeScore((prev) => Math.max(0, prev - 1));
+          setHomeScores(prev => ({ ...prev, [event.period]: Math.max(0, prev[event.period] - 1) }));
         } else {
-          setAwayScore((prev) => Math.max(0, prev - 1));
+          setAwayScores(prev => ({ ...prev, [event.period]: Math.max(0, prev[event.period] - 1) }));
         }
       }
     }
@@ -430,13 +772,13 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
     try {
       const supabase = createClient();
 
-      // 試合スコアを更新
+      // 試合スコアを更新（合計スコア）
       const { error: matchError } = await supabase
         .from('matches')
         .update({
-          home_score: homeScore,
-          away_score: awayScore,
-          status: half === 'finished' ? 'finished' : 'in_progress',
+          home_score: homeTotal,
+          away_score: awayTotal,
+          status: period === 'finished' ? 'finished' : 'in_progress',
         })
         .eq('id', match.id);
 
@@ -589,19 +931,12 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
   // 試合記録画面
   return (
     <PageWrapper header={headerContent}>
-      {/* スコアボード */}
+      {/* スコアボード（3ピリオド制） */}
       <div className="bg-gradient-to-r from-blue-900 to-blue-700 rounded-2xl p-4 mb-4 text-white">
-        {/* ハーフ表示 */}
+        {/* ピリオド表示 */}
         <div className="text-center mb-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-            half === 'first' ? 'bg-green-500' :
-            half === 'halftime' ? 'bg-yellow-500 text-yellow-900' :
-            half === 'second' ? 'bg-orange-500' :
-            'bg-gray-500'
-          }`}>
-            {half === 'first' ? '前半' :
-             half === 'halftime' ? 'ハーフタイム' :
-             half === 'second' ? '後半' : '試合終了'}
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${getPeriodColor(period)}`}>
+            {getPeriodName(period)}
           </span>
         </div>
 
@@ -629,11 +964,11 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
             </p>
           </div>
 
-          {/* スコア */}
+          {/* スコア（合計） */}
           <div className="flex items-center gap-4">
-            <span className="text-5xl font-bold">{homeScore}</span>
+            <span className="text-5xl font-bold">{homeTotal}</span>
             <span className="text-2xl text-white/50">-</span>
-            <span className="text-5xl font-bold">{awayScore}</span>
+            <span className="text-5xl font-bold">{awayTotal}</span>
           </div>
 
           {/* アウェイチーム */}
@@ -659,26 +994,47 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
           </div>
         </div>
 
+        {/* ピリオド別スコア */}
+        <div className="mt-3 flex justify-center gap-4 text-xs">
+          <div className="text-center">
+            <p className="text-white/50">1st</p>
+            <p className="font-bold">{homeScores['1st']} - {awayScores['1st']}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white/50">2nd</p>
+            <p className="font-bold">{homeScores['2nd']} - {awayScores['2nd']}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white/50">3rd</p>
+            <p className="font-bold">{homeScores['3rd']} - {awayScores['3rd']}</p>
+          </div>
+        </div>
+
         {/* タイマー */}
         <div className="mt-4 text-center">
-          {half === 'halftime' ? (
+          {(period === 'break1' || period === 'break2') ? (
             <>
-              <p className="text-4xl font-mono font-bold text-yellow-300">{formatTime(halftimeSeconds)}</p>
-              <p className="text-xs text-yellow-200 mt-1">ハーフタイム経過</p>
+              <p className="text-4xl font-mono font-bold text-yellow-300">{formatTime(breakSeconds)}</p>
+              <p className="text-xs text-yellow-200 mt-1">
+                インターバル（{period === 'break1' ? '2分' : '4分'}）
+              </p>
             </>
-          ) : (
+          ) : period !== 'finished' ? (
             <>
               <p className="text-4xl font-mono font-bold">{formatTime(elapsedSeconds)}</p>
-              <p className="text-xs text-white/60 mt-1">{getCurrentMinute()}分</p>
+              <p className="text-xs text-white/60 mt-1">{getCurrentMinute()}分 / 15分</p>
             </>
+          ) : (
+            <p className="text-2xl font-bold text-white/80">試合終了</p>
           )}
         </div>
       </div>
 
-      {/* タイマーコントロール */}
-      {half !== 'finished' && (
+      {/* タイマーコントロール（3ピリオド制） */}
+      {period !== 'finished' && (
         <div className="flex gap-2 mb-4">
-          {half === 'halftime' ? (
+          {(period === 'break1' || period === 'break2') ? (
+            /* インターバル中 */
             <>
               <button
                 onClick={toggleTimer}
@@ -692,14 +1048,15 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
                 {timerRunning ? '一時停止' : '再開'}
               </button>
               <button
-                onClick={startSecondHalf}
+                onClick={startNextPeriod}
                 className="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Play size={18} />
-                後半スタート
+                {period === 'break1' ? '2ndスタート' : '3rdスタート'}
               </button>
             </>
           ) : (
+            /* ピリオド中 */
             <>
               <button
                 onClick={toggleTimer}
@@ -718,19 +1075,19 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
               >
                 <RotateCcw size={18} />
               </button>
-              {half === 'first' ? (
-                <button
-                  onClick={endFirstHalf}
-                  className="px-4 py-3 bg-yellow-500 text-yellow-900 rounded-xl font-bold text-sm hover:bg-yellow-600 transition-colors"
-                >
-                  前半終了
-                </button>
-              ) : (
+              {period === '3rd' ? (
                 <button
                   onClick={endMatch}
                   className="px-4 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors"
                 >
                   試合終了
+                </button>
+              ) : (
+                <button
+                  onClick={endPeriod}
+                  className="px-4 py-3 bg-yellow-500 text-yellow-900 rounded-xl font-bold text-sm hover:bg-yellow-600 transition-colors"
+                >
+                  {period === '1st' ? '1st終了' : '2nd終了'}
                 </button>
               )}
             </>
@@ -738,35 +1095,63 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
         </div>
       )}
 
-      {/* 出場中メンバー表示 */}
+      {/* 出場中メンバー表示（ピリオド出場数付き） */}
       <div className="mb-4 p-3 bg-green-50 rounded-xl">
         <p className="text-xs font-bold text-green-800 mb-2">出場中 ({playersOnField.length}人)</p>
         <div className="flex flex-wrap gap-1">
-          {playersOnField.map((player) => (
-            <span
-              key={player.id}
-              className="px-2 py-1 bg-green-200 text-green-800 rounded text-[10px] font-medium"
-            >
-              #{player.uniform_number} {player.family_name}
-            </span>
-          ))}
+          {playersOnField.map((player) => {
+            const periodCount = player.periodsPlayed.length;
+            const isMaxPeriods = periodCount >= 2 && !player.position?.includes('GK');
+            return (
+              <span
+                key={player.id}
+                className={`px-2 py-1 rounded text-[10px] font-medium ${
+                  isMaxPeriods
+                    ? 'bg-orange-200 text-orange-800'
+                    : 'bg-green-200 text-green-800'
+                }`}
+              >
+                #{player.uniform_number} {player.family_name}
+                <span className="ml-1 opacity-70">({periodCount}P)</span>
+              </span>
+            );
+          })}
         </div>
+        <p className="text-[10px] text-green-600 mt-2">
+          ※ GKとFP1名のみ3P出場可。その他は最大2P
+        </p>
       </div>
 
-      {/* 控えメンバー表示 */}
+      {/* 控えメンバー表示（ピリオド出場数付き） */}
       {substitutes.length > 0 && (
         <div className="mb-4 p-3 bg-gray-50 rounded-xl">
           <p className="text-xs font-bold text-gray-600 mb-2">控え ({substitutes.length}人)</p>
           <div className="flex flex-wrap gap-1">
-            {substitutes.map((player) => (
-              <span
-                key={player.id}
-                className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-[10px] font-medium"
-              >
-                #{player.uniform_number} {player.family_name}
-              </span>
-            ))}
+            {substitutes.map((player) => {
+              const periodCount = player.periodsPlayed.length;
+              const isMaxPeriods = periodCount >= 2 && !player.position?.includes('GK');
+              const notYetPlayed = periodCount === 0;
+              return (
+                <span
+                  key={player.id}
+                  className={`px-2 py-1 rounded text-[10px] font-medium ${
+                    isMaxPeriods
+                      ? 'bg-red-100 text-red-600 line-through'
+                      : notYetPlayed
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  #{player.uniform_number} {player.family_name}
+                  {periodCount > 0 && <span className="ml-1 opacity-70">({periodCount}P)</span>}
+                  {notYetPlayed && <span className="ml-1">⚠️</span>}
+                </span>
+              );
+            })}
           </div>
+          <p className="text-[10px] text-gray-500 mt-2">
+            ⚠️ 未出場 ・ 取消線 = 出場上限到達
+          </p>
         </div>
       )}
 
@@ -845,7 +1230,7 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
         </div>
       </div>
 
-      {/* イベントタイムライン */}
+      {/* イベントタイムライン（3ピリオド制） */}
       <div className="mb-20">
         <h3 className="text-sm font-bold text-gray-700 mb-2">タイムライン</h3>
         {events.length === 0 ? (
@@ -862,6 +1247,7 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
                 <span className="text-2xl">{getEventIcon(event.type)}</span>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900">
+                    <span className="text-xs text-gray-400 mr-1">[{event.period}]</span>
                     {event.minute}' {getEventLabel(event.type)}
                   </p>
                   <p className="text-xs text-gray-500">
@@ -934,7 +1320,7 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
 
             <div className="p-4">
               <p className="text-sm text-gray-600 mb-3">
-                {getCurrentMinute()}分 -{' '}
+                <span className="font-medium text-blue-600">[{getCurrentPeriodForEvent()}]</span> {getCurrentMinute()}分 -{' '}
                 {selectedTeamId === match.home_team_id
                   ? match.home_team.name
                   : match.away_team.name}
@@ -1041,6 +1427,70 @@ export default function RecordPage({ params }: { params: Promise<{ matchId: stri
                 className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 記録する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 記録者・主審設定モーダル */}
+      {showSetupModal && !setupComplete && !rosterNotFound && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-blue-600 text-white p-4">
+              <h3 className="text-lg font-bold">試合記録の設定</h3>
+              <p className="text-xs text-blue-100 mt-1">記録開始前に以下の情報を入力してください</p>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  記録者名 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={recorderName}
+                  onChange={(e) => setRecorderName(e.target.value)}
+                  placeholder="例: 山田太郎"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">スコア記録を行う方のお名前</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  主審氏名 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={refereeName}
+                  onChange={(e) => setRefereeName(e.target.value)}
+                  placeholder="例: 佐藤次郎"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">この試合の主審のお名前</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!recorderName.trim() || !refereeName.trim()) {
+                    alert('記録者名と主審氏名を入力してください');
+                    return;
+                  }
+                  // localStorageに保存
+                  const recordData: StoredMatchRecord = {
+                    recorderName: recorderName.trim(),
+                    refereeName: refereeName.trim(),
+                    savedAt: new Date().toISOString(),
+                  };
+                  localStorage.setItem(getMatchRecordStorageKey(resolvedParams.matchId), JSON.stringify(recordData));
+                  setSetupComplete(true);
+                  setShowSetupModal(false);
+                }}
+                disabled={!recorderName.trim() || !refereeName.trim()}
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                記録を開始する
               </button>
             </div>
           </div>
